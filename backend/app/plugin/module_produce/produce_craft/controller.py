@@ -20,7 +20,7 @@ ProduceCraftRouter = APIRouter(route_class=OperationLogRoute, prefix="/produce_c
 
 @ProduceCraftRouter.get("/detail/{id}", summary="获取工艺管理详情", response_model=ResponseSchema[ProduceCraftOutSchema])
 async def get_obj_detail_controller(
-    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce_craft:produce_craft:detail"]))],
+    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce:produce_craft:detail"]))],
     id: Annotated[int, Path(description="工艺管理ID")],
     db: Annotated[AsyncSession, Depends(db_getter)],
 ) -> JSONResponse:
@@ -31,7 +31,7 @@ async def get_obj_detail_controller(
 
 @ProduceCraftRouter.get("/list", summary="分页查询工艺管理", response_model=ResponseSchema[PageResultSchema[ProduceCraftOutSchema]])
 async def get_obj_list_controller(
-    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce_craft:produce_craft:query"]))],
+    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce:produce_craft:query"]))],
     page: Annotated[PaginationQueryParam, Depends()],
     search: Annotated[ProduceCraftQueryParam, Query()],
     db: Annotated[AsyncSession, Depends(db_getter)],
@@ -48,7 +48,7 @@ async def get_obj_list_controller(
 
 @ProduceCraftRouter.post("/create", status_code=status.HTTP_201_CREATED, summary="创建工艺管理", response_model=ResponseSchema[ProduceCraftOutSchema])
 async def create_obj_controller(
-    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce_craft:produce_craft:create"]))],
+    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce:produce_craft:create"]))],
     data: Annotated[ProduceCraftCreateSchema, Body(description="创建参数")],
     db: Annotated[AsyncSession, Depends(db_getter)],
 ) -> JSONResponse:
@@ -59,7 +59,7 @@ async def create_obj_controller(
 
 @ProduceCraftRouter.put("/update/{id}", summary="修改工艺管理", response_model=ResponseSchema[ProduceCraftOutSchema])
 async def update_obj_controller(
-    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce_craft:produce_craft:update"]))],
+    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce:produce_craft:update"]))],
     id: Annotated[int, Path(description="工艺管理ID")],
     data: Annotated[ProduceCraftUpdateSchema, Body(description="修改参数")],
     db: Annotated[AsyncSession, Depends(db_getter)],
@@ -71,7 +71,7 @@ async def update_obj_controller(
 
 @ProduceCraftRouter.delete("/delete", summary="删除工艺管理", response_model=ResponseSchema[None])
 async def delete_obj_controller(
-    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce_craft:produce_craft:delete"]))],
+    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce:produce_craft:delete"]))],
     ids: Annotated[list[int], Body(description="ID列表")],
     db: Annotated[AsyncSession, Depends(db_getter)],
 ) -> JSONResponse:
@@ -82,7 +82,7 @@ async def delete_obj_controller(
 
 @ProduceCraftRouter.patch("/status/batch", summary="批量修改工艺管理状态", response_model=ResponseSchema[None])
 async def batch_set_available_obj_controller(
-    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce_craft:produce_craft:patch"]))],
+    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce:produce_craft:patch"]))],
     data: Annotated[BatchSetAvailable, Body(description="状态设置")],
     db: Annotated[AsyncSession, Depends(db_getter)],
 ) -> JSONResponse:
@@ -93,7 +93,7 @@ async def batch_set_available_obj_controller(
 
 @ProduceCraftRouter.post("/export", summary="导出工艺管理")
 async def export_obj_list_controller(
-    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce_craft:produce_craft:export"]))],
+    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce:produce_craft:export"]))],
     search: Annotated[ProduceCraftQueryParam, Query()],
     db: Annotated[AsyncSession, Depends(db_getter)],
 ) -> StreamingResponse:
@@ -111,7 +111,7 @@ async def export_obj_list_controller(
 @ProduceCraftRouter.post("/import", summary="导入工艺管理", response_model=ResponseSchema[str])
 async def import_obj_list_controller(
     file: Annotated[UploadFile, File(description="导入文件")],
-    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce_craft:produce_craft:import"]))],
+    auth: Annotated[AuthSchema, Depends(AuthPermission(["module_produce:produce_craft:import"]))],
     db: Annotated[AsyncSession, Depends(db_getter)],
 ) -> JSONResponse:
     service = ProduceCraftService(auth, db)
@@ -119,7 +119,7 @@ async def import_obj_list_controller(
     return SuccessResponse(data=batch_import_result, msg="导入工艺管理成功")
 
 
-@ProduceCraftRouter.post("/download/template", summary="获取工艺管理导入模板", dependencies=[Depends(AuthPermission(["module_produce_craft:produce_craft:download"]))])
+@ProduceCraftRouter.post("/download/template", summary="获取工艺管理导入模板", dependencies=[Depends(AuthPermission(["module_produce:produce_craft:download"]))])
 async def export_obj_template_controller() -> StreamingResponse:
     import_template_result = ProduceCraftService.import_template_download()
 

@@ -2,7 +2,7 @@ import { request } from "@utils";
 
 // API 前缀来自分系统包 module_xxx → /xxx
 // 对齐 module_example/demo：业务接口固定为 /{prefix}/{module_name}
-const API_PATH = "/produce_craft/produce_craft";
+const API_PATH = "/produce/produce_craft";
 
 const ProduceCraftAPI = {
   getProduceCraftList(query: ProduceCraftPageQuery) {

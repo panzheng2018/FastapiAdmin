@@ -27,11 +27,11 @@
         <template #left>
           <FaTableHeaderLeft
             :remove-ids="selectedIds"
-            :perm-create="['module_produce_craft:produce_craft:create']"
-            :perm-import="['module_produce_craft:produce_craft:import']"
-            :perm-export="['module_produce_craft:produce_craft:export']"
-            :perm-delete="['module_produce_craft:produce_craft:delete']"
-            :perm-patch="['module_produce_craft:produce_craft:patch']"
+            :perm-create="['module_produce:produce_craft:create']"
+            :perm-import="['module_produce:produce_craft:import']"
+            :perm-export="['module_produce:produce_craft:export']"
+            :perm-delete="['module_produce:produce_craft:delete']"
+            :perm-patch="['module_produce:produce_craft:patch']"
             :delete-loading="batchDeleting"
             :create-loading="createLoading"
             @add="handleAdd"
@@ -147,7 +147,7 @@ import ProduceCraftAPI, {
   type ProduceCraftForm,
   type ProduceCraftPageQuery,
   type ProduceCraftTable,
-} from "@/api/module_produce_craft/produce_craft";
+} from "@/api/module_produce/produce_craft";
 
 defineOptions({
   name: "ProduceCraft",
@@ -306,14 +306,14 @@ const exportQueryParams = computed(() => {
 });
 
 const importContentConfig = computed<IContentConfig>(() => ({
-  permPrefix: "module_produce_craft:produce_craft",
+  permPrefix: "module_produce:produce_craft",
   cols: crudCols.value,
   indexAction: async () => ({}),
   importTemplate: () => ProduceCraftAPI.downloadTemplateProduceCraft(),
 }));
 
 const exportContentConfig = computed(() => ({
-  permPrefix: "module_produce_craft:produce_craft",
+  permPrefix: "module_produce:produce_craft",
   cols: crudCols.value,
   exportsBlobAction: async (params: IObject) => {
     const merged = {
@@ -445,7 +445,7 @@ function buildRowActions(row: ProduceCraftTable): TableOperationAction[] {
       key: "detail",
       label: "详情",
       artType: "view",
-      perm: "module_produce_craft:produce_craft:detail",
+      perm: "module_produce:produce_craft:detail",
       run: () => void crud.handleOpenDialog("detail", row[PK] as number),
     },
     {
@@ -453,7 +453,7 @@ function buildRowActions(row: ProduceCraftTable): TableOperationAction[] {
       label: "编辑",
       artType: "edit",
       icon: "ri:edit-2-line",
-      perm: "module_produce_craft:produce_craft:update",
+      perm: "module_produce:produce_craft:update",
       run: () => void crud.handleOpenDialog("update", row[PK] as number),
     },
     {
@@ -461,7 +461,7 @@ function buildRowActions(row: ProduceCraftTable): TableOperationAction[] {
       label: "删除",
       artType: "delete",
       icon: "ri:delete-bin-4-line",
-      perm: "module_produce_craft:produce_craft:delete",
+      perm: "module_produce:produce_craft:delete",
       run: () => deleteRow(row),
     },
   ];
