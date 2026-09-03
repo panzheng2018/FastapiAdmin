@@ -33,8 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
-import VersionAPI from "@/api/module_system/version";
+import { ref } from "vue";
 
 defineOptions({ name: "SystemChangeLog" });
 
@@ -48,26 +47,4 @@ interface UpgradeLog {
 
 const upgradeLogList = ref<UpgradeLog[]>([]);
 const loading = ref(false);
-
-const fetchData = async () => {
-  loading.value = true;
-  try {
-    const { data: res } = await VersionAPI.getPublishedVersions();
-    if (res?.data) {
-      upgradeLogList.value = res.data.map((item: any) => ({
-        version: item.version,
-        title: item.title,
-        date: item.date,
-        content: item.content || null,
-        description: item.description,
-      }));
-    }
-  } catch {
-    // silently fail
-  } finally {
-    loading.value = false;
-  }
-};
-
-onMounted(fetchData);
 </script>

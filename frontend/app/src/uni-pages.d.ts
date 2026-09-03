@@ -13,9 +13,7 @@ type _LocationUrl =
   "/subPages/about/index" |
   "/subPages/setting/index" |
   "/subPages/module_system/notices/index" |
-  "/subPages/module_system/profile/index" |
-  "/subPages/module_system/ticket-detail/index" |
-  "/subPages/module_system/tickets/index";
+  "/subPages/module_system/profile/index";
 
 interface NavigateToOptions {
   url: _LocationUrl;

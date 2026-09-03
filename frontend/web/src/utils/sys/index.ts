@@ -2,7 +2,6 @@
 
 import type { App } from "vue";
 import mitt, { type Emitter } from "mitt";
-import VersionAPI from "@/api/module_system/version";
 import { ElNotification } from "element-plus";
 import { useUserStore } from "@stores";
 import { Auth, StorageConfig } from "@utils";
@@ -200,16 +199,7 @@ class VersionManager {
   private async fetchUpgradeVersions(): Promise<
     { version: string; title: string; requireReLogin: boolean }[]
   > {
-    try {
-      const response = await VersionAPI.getPublishedVersions();
-      return (response.data.data ?? []).map((v) => ({
-        version: v.version ?? "",
-        title: v.title ?? "",
-        requireReLogin: v.require_re_login ?? false,
-      }));
-    } catch {
-      return [];
-    }
+    return [];
   }
 
   private shouldRequireReLogin(

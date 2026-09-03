@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import { useI18nNavTitle } from '@/composables/useI18nNavTitle'
 import { useShare } from '@/composables/useShare'
 import { useTabbarActive } from '@/composables/useTabbarActive'
-import { useTicketStats } from '@/composables/useTicketStats'
 import { useUserStore } from '@/store/userStore'
 
 const { t } = useI18n()
@@ -28,10 +27,7 @@ function navigateTo(name: string) {
   router.push({ name })
 }
 
-/** 工单统计（共享缓存，与 mine 页面复用，仅预热缓存，展示在 mine 页） */
-const { loadTicketStats } = useTicketStats()
-
-useTabbarActive('pages/work/index', 'work', loadTicketStats)
+useTabbarActive('pages/work/index', 'work')
 
 const groups = [
   {
@@ -40,7 +36,6 @@ const groups = [
     bg: 'wot-bg-orange-1',
     items: [
       { icon: 'notification', titleKey: 'common.nav.notices', name: 'work-notices' },
-      { icon: 'message', titleKey: 'common.nav.tickets', name: 'work-tickets' },
     ],
   },
 ]

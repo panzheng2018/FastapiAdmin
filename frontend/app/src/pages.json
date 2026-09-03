@@ -132,22 +132,6 @@
           "style": {
             "navigationBarTitleText": "通知公告"
           }
-        },
-        {
-          "path": "module_system/ticket-detail/index",
-          "type": "page",
-          "name": "work-ticket-detail",
-          "style": {
-            "navigationBarTitleText": "工单详情"
-          }
-        },
-        {
-          "path": "module_system/tickets/index",
-          "type": "page",
-          "name": "work-tickets",
-          "style": {
-            "navigationBarTitleText": "工单管理"
-          }
         }
       ]
     }
