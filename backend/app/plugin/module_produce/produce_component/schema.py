@@ -7,7 +7,7 @@ from app.core.base_schema import BaseSchema, UserBySchema, BaseQueryParam, UserB
 
 class ProduceComponentCreateSchema(BaseModel):
     """
-    部件信息新增模型
+    部件管理新增模型
     """
     project_id: int = Field(default=..., description='所属项目id')
     name: str = Field(default=..., description='部件名称')
@@ -20,7 +20,7 @@ class ProduceComponentCreateSchema(BaseModel):
 
 class ProduceComponentUpdateSchema(BaseModel):
     """
-    部件信息更新模型
+    部件管理更新模型
     """
     project_id: int | None = Field(default=None, description='所属项目id')
     name: str | None = Field(default=None, description='部件名称')
@@ -33,13 +33,13 @@ class ProduceComponentUpdateSchema(BaseModel):
 
 class ProduceComponentOutSchema(ProduceComponentCreateSchema, BaseSchema, UserBySchema):
     """
-    部件信息响应模型
+    部件管理响应模型
     """
     model_config = ConfigDict(from_attributes=True)
 
 
 class ProduceComponentQueryParam(BaseQueryParam, UserByQueryParam):
-    """部件信息查询参数"""
+    """部件管理查询参数"""
 
     project_id: int | None = Field(None, description="所属项目id", json_schema_extra={"q": "eq"})
     name: str | None = Field(None, description="部件名称", json_schema_extra={"q": "like"})
