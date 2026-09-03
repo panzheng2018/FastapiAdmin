@@ -36,7 +36,7 @@
   --el-messagebox-border-radius: calc(var(--custom-radius) / 3 + 4px) !important;
   --el-popover-border-radius: calc(var(--custom-radius) / 3 + 4px) !important;
 
-  .region .el-radio-button__original-radio:checked + .el-radio-button__inner {
+  .region .el-radio-button__original-radio:checked+.el-radio-button__inner {
     color: var(--theme-color);
   }
 }
@@ -62,7 +62,7 @@ html.dark .el-card {
   --el-pagination-button-width: 32px !important;
   --el-pagination-button-height: var(--el-pagination-button-width) !important;
 
-  @media (width <= 1180px) {
+  @media (width <=1180px) {
     --el-pagination-button-width: 28px !important;
   }
 
@@ -110,6 +110,7 @@ html.dark .el-card {
 .el-radio-button--default .el-radio-button__inner {
   padding: 10px 15px !important;
 }
+
 // -------------------------------- 修改 el-size=default 组件默认高度 end --------------------------------
 
 .el-pagination.is-background .btn-next,
@@ -158,6 +159,7 @@ html.dark .el-card {
 
 .el-dialog.el-dialog-border {
   .el-dialog__body {
+
     // 上边框
     &::before,
     // 下边框
@@ -275,7 +277,8 @@ html.dark .el-card {
 }
 
 // 处理移动端组件兼容性
-@media screen and (width <= 640px) {
+@media screen and (width <=640px) {
+
   .el-message-box,
   .el-dialog {
     width: calc(100% - 24px) !important;
@@ -291,8 +294,8 @@ html.dark .el-card {
     display: none;
   }
 
-  .el-picker-panel *[slot="sidebar"] + .el-picker-panel__body,
-  .el-picker-panel__sidebar + .el-picker-panel__body {
+  .el-picker-panel *[slot="sidebar"]+.el-picker-panel__body,
+  .el-picker-panel__sidebar+.el-picker-panel__body {
     margin-left: 0;
   }
 }
@@ -381,6 +384,7 @@ html.dark .el-card {
 }
 
 .el-radio--default {
+
   // 优化单选按钮大小
   .el-radio__input {
     .el-radio__inner {
@@ -474,7 +478,7 @@ html.dark .el-card {
 }
 
 // ipad 表单右侧按钮优化
-@media screen and (width <= 1180px) {
+@media screen and (width <=1180px) {
   .el-table-fixed-column--right {
     padding-right: 0 !important;
   }
@@ -562,7 +566,7 @@ html.dark .el-card {
       }
     }
 
-    .el-select-dropdown__item:hover ~ .is-selected,
+    .el-select-dropdown__item:hover~.is-selected,
     .el-select-dropdown__item.is-selected:has(~ .el-select-dropdown__item:hover) {
       background-color: transparent !important;
     }
@@ -588,7 +592,7 @@ html.dark .el-card {
 }
 
 // 实现水波纹在文字下面效果
-.el-button > span {
+.el-button>span {
   position: relative;
   z-index: 10;
 }
@@ -617,7 +621,7 @@ html.dark .el-card {
 }
 
 .dark {
-  .el-tree--highlight-current .el-tree-node.is-current > .el-tree-node__content {
+  .el-tree--highlight-current .el-tree-node.is-current>.el-tree-node__content {
     background-color: var(--fa-gray-300) !important;
   }
 }
@@ -632,6 +636,7 @@ html.dark .el-card {
 
 // 数字输入组件右侧按钮高度跟随自定义组件高度
 .el-input-number--default.is-controls-right {
+
   .el-input-number__decrease,
   .el-input-number__increase {
     height: calc((var(--el-component-size) / 2)) !important;
@@ -640,16 +645,17 @@ html.dark .el-card {
 
 // ── ElTable 表格样式优化 ──
 .el-table {
+
   // 表格行圆角 + 悬停高亮
   .el-table__body tr.el-table__row {
     transition: background-color 0.2s ease;
 
-    &:hover > td.el-table__cell {
+    &:hover>td.el-table__cell {
       background-color: var(--fa-hover-color) !important;
     }
 
     // 当前行高亮
-    &.current-row > td.el-table__cell {
+    &.current-row>td.el-table__cell {
       background-color: color-mix(in srgb, var(--el-color-primary) 8%, transparent) !important;
     }
   }

@@ -58,7 +58,7 @@
     <FaDialog
       v-model="dialogVisible.visible"
       :title="dialogVisible.title"
-      width="500px"
+      width="820px"
       dialog-class="crud-embed-dialog"
       modal-class="crud-embed-dialog"
       :form-mode="dialogVisible.type"
@@ -69,7 +69,7 @@
     >
       <template v-if="dialogVisible.type === 'detail'">
         <FaDescriptions
-          :column="1"
+          :column="2"
           :data="detailFormData"
           :items="detailItems"
           max-height="70vh"
@@ -85,10 +85,10 @@
           :items="dialogFormItems"
           :rules="rules"
           label-suffix=":"
-          :label-width="96"
-          label-position="left"
-          :span="24"
-          :gutter="0"
+          :label-width="110"
+          label-position="right"
+          :span="12"
+          :gutter="16"
           :show-reset="false"
           :show-submit="false"
           class="crud-dialog-art-form"
@@ -773,13 +773,13 @@ const dialogFormItems: FormItem[] = [
   { key: "no", label: "单号", type: "input" },
   { key: "project_id", label: "所属项目", type: "select" },
   { key: "component_id", label: "所属部件", type: "select" },
-  { key: "craft_id", label: "工艺", type: "select" },
-  { key: "plan_count", label: "数量", type: "number", props: { placeholder: "请输入数量", class: "w-full", style: { width: "100%" } } },
+  { key: "craft_id", label: "工　　艺", type: "select" },
+  { key: "plan_count", label: "数　　量", type: "number", props: { placeholder: "请输入数量", class: "w-full", style: { width: "100%" } } },
   { key: "plan_end_time", label: "完工时间", type: "datetime", props: { placeholder: "请选择完工时间", valueFormat: "YYYY-MM-DD HH:mm:ss", style: "width: 100%" } },
   { key: "plan_user_id", label: "执行用户", type: "select" },
   {
     key: "description",
-    label: "描述",
+    label: "描　　述",
     type: "input",
     span: 24,
     props: {
@@ -1030,16 +1030,21 @@ async function handleCrudImportUpload(formData: FormData) {
     }
   }
 
-  // 单栏表单输入控件撑满整行
+  // 表单文本与数字输入控件宽度适当减少，更加紧凑美观
   .el-form-item__content {
     .el-input,
     .el-input-number,
     .el-select,
     .el-date-editor,
-    .el-textarea,
     .custom-input-container {
-      width: 100% !important;
-      max-width: 100% !important;
+      max-width: 250px;
+      width: 100%;
+    }
+
+    // 描述多行文本跨栏自适应
+    .el-textarea {
+      max-width: 632px;
+      width: 100%;
     }
   }
 }
