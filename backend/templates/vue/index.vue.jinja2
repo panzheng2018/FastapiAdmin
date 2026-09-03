@@ -342,8 +342,8 @@ const {
       page_size: 10,
     },
     columnsFactory: (): ColumnOption<{{ class_name }}Table>[] => [
-      { type: "globalIndex", width: 56, label: "序号" },
-      { type: "selection", width: 48, fixed: "left" },
+      { type: "globalIndex", width: 56, label: "序号", align: "center", headerAlign: "center" },
+      { type: "selection", width: 48, fixed: "left", align: "center", headerAlign: "center" },
       {% for column in columns %}
       {% if column.is_list and column.column_name not in ['is_deleted', 'deleted_time', 'deleted_id'] and column.column_name != pk_column_name %}
       {% set column_comment = column.column_comment if column.column_comment else '' %}
@@ -354,9 +354,16 @@ const {
         prop: "status",
         label: "状态",
         width: 88,
+        align: "center",
+        headerAlign: "center",
         status: {
+          {% if column.python_type == "str" %}
+          "0": { type: "success", text: "启用" },
+          "1": { type: "info", text: "停用" },
+          {% else %}
           0: { type: "success", text: "启用" },
           1: { type: "info", text: "停用" },
+          {% endif %}
         },
       },
       {% elif column.column_name == "created_id" %}
@@ -364,6 +371,7 @@ const {
         prop: "created_by",
         label: "创建人",
         minWidth: 100,
+        headerAlign: "center",
         formatter: (row: {{ class_name }}Table) => row.created_by?.name ?? "—",
       },
       {% elif column.column_name == "updated_id" %}
@@ -371,17 +379,20 @@ const {
         prop: "updated_by",
         label: "更新人",
         minWidth: 100,
+        headerAlign: "center",
         formatter: (row: {{ class_name }}Table) => row.updated_by?.name ?? "—",
       },
       {% elif column.column_name == "created_time" %}
-      { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true },
+      { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center" },
       {% elif column.column_name == "updated_time" %}
-      { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true },
+      { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center" },
       {% elif column.python_type == "bool" or column.html_type == "checkbox" %}
       {
         prop: "{{ column.column_name }}",
         label: "{{ comment }}",
         width: 80,
+        align: "center",
+        headerAlign: "center",
         status: {
           true: { type: "success", text: "是" },
           false: { type: "danger", text: "否" },
@@ -392,6 +403,8 @@ const {
         prop: "{{ column.column_name }}",
         label: "{{ comment }}",
         minWidth: 120,
+        align: "center",
+        headerAlign: "center",
         formatter: (row: {{ class_name }}Table) => {
           if (!row.{{ column.column_name }}) return h("span", { class: "text-g-400" }, "—");
           return h("el-image", {
@@ -404,9 +417,9 @@ const {
         },
       },
       {% elif (column.html_type == "select" or column.html_type == "radio") and column.dict_type %}
-      { prop: "{{ column.column_name }}", label: "{{ comment }}", minWidth: 120, showOverflowTooltip: true },
+      { prop: "{{ column.column_name }}", label: "{{ comment }}", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
       {% else %}
-      { prop: "{{ column.column_name }}", label: "{{ comment }}", minWidth: 120, showOverflowTooltip: true },
+      { prop: "{{ column.column_name }}", label: "{{ comment }}", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
       {% endif %}
       {% endif %}
       {% endfor %}
@@ -416,6 +429,7 @@ const {
         width: 180,
         fixed: "right",
         align: "center",
+        headerAlign: "center",
         formatter: (row: {{ class_name }}Table) => formatOperationCell(row),
       },
     ],

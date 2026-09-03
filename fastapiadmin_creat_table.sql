@@ -15,8 +15,8 @@ CREATE TABLE `produce_project` (
   `description` text NULL COMMENT '备注/描述',
   `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `created_id` int NULL COMMENT '创建人ID',
-  `updated_id` int NULL COMMENT '更新人ID',
+  `created_id` int NOT NULL COMMENT '创建人ID',
+  `updated_id` int NOT NULL COMMENT '更新人ID',
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_name` (`name`),
@@ -44,8 +44,8 @@ CREATE TABLE `produce_component` (
   `description` text NULL COMMENT '备注/描述',
   `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `created_id` int NULL COMMENT '创建人ID',
-  `updated_id` int NULL COMMENT '更新人ID',
+  `created_id` int NOT NULL COMMENT '创建人ID',
+  `updated_id` int NOT NULL COMMENT '更新人ID',
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_produce_component_uuid` (`uuid`),
@@ -71,8 +71,8 @@ CREATE TABLE `produce_craft` (
   `description` text NULL COMMENT '备注/描述',
   `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `created_id` int NULL COMMENT '创建人ID',
-  `updated_id` int NULL COMMENT '更新人ID',
+  `created_id` int NOT NULL COMMENT '创建人ID',
+  `updated_id` int NOT NULL COMMENT '更新人ID',
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_name` (`name`),
@@ -83,22 +83,22 @@ CREATE TABLE `produce_craft` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='工艺表';
 
 -- 插入主工艺
-INSERT INTO produce_craft (id, parent_id, name) VALUES 
-(1, NULL, '下料'),
-(2, NULL, '铆焊'),
-(3, NULL, '机加'),
-(4, NULL, '喷漆'),
-(5, NULL, '装配'),
-(6, 3, '车削'),
-(7, 3, '铣削'),
-(8, 3, '钻削'),
-(9, 3, '镗削'),
-(10, 3, '刨削'),
-(11, 1, '板材'),
-(12, 1, '型材'),
-(13, 4, '打磨'),
-(14, 4, '底漆'),
-(15, 4, '面漆');
+INSERT INTO produce_craft (id, parent_id, name, created_id, updated_id) VALUES 
+(1, NULL, '下料', 1, 1),
+(2, NULL, '铆焊', 1, 1),
+(3, NULL, '机加', 1, 1),
+(4, NULL, '喷漆', 1, 1),
+(5, NULL, '装配', 1, 1),
+(6, 3, '车削', 1, 1),
+(7, 3, '铣削', 1, 1),
+(8, 3, '钻削', 1, 1),
+(9, 3, '镗削', 1, 1),
+(10, 3, '刨削', 1, 1),
+(11, 1, '板材', 1, 1),
+(12, 1, '型材', 1, 1),
+(13, 4, '打磨', 1, 1),
+(14, 4, '底漆', 1, 1),
+(15, 4, '面漆', 1, 1);
 
 -- =============================================
 -- 四、生产工单表
@@ -122,8 +122,8 @@ CREATE TABLE `produce_worder` (
   `description` text NULL COMMENT '备注/描述',
   `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `created_id` int NULL COMMENT '创建人ID',
-  `updated_id` int NULL COMMENT '更新人ID',
+  `created_id` int NOT NULL COMMENT '创建人ID',
+  `updated_id` int NOT NULL COMMENT '更新人ID',
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_produce_worder_uuid` (`uuid`),
