@@ -65,13 +65,24 @@ CREATE TABLE `component` (
 -- =============================================
 DROP TABLE IF EXISTS `craft`;
 CREATE TABLE `craft` (
-  `id` int NOT NULL AUTO_INCREMENT COMMENT '工艺ID',
   `parent_id` int DEFAULT NULL COMMENT '父工艺ID',
   `name` varchar(255) NOT NULL COMMENT '工艺名称',
 
+  `id` int NOT NULL AUTO_INCREMENT COMMENT '工艺ID',
+  `uuid` varchar(64) NOT NULL DEFAULT (UUID()) COMMENT 'UUID全局唯一标识',
+  `status` varchar(8) NOT NULL DEFAULT '0' COMMENT '是否启用(0:启用 1:禁用)',
+  `description` text NULL COMMENT '备注/描述',
+  `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `created_id` int NULL COMMENT '创建人ID',
+  `updated_id` int NULL COMMENT '更新人ID',
+
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_name` (`name`),
-  KEY `ix_craft_parent_id` (`parent_id`)
+  KEY `ix_craft_parent_id` (`parent_id`),
+  CONSTRAINT `fk_craft_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `craft` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_craft_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_craft_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='工艺表';
 
 -- 插入主工艺
