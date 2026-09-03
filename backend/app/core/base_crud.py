@@ -59,6 +59,11 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
         # 判断模型是否有 is_deleted / deleted_time / deleted_id 三个字段
         return all(hasattr(self.model, attr) for attr in ("is_deleted", "deleted_time", "deleted_id"))
 
+    @property
+    def _supports_status_delete(self) -> bool:
+        # 判断模型是否支持通过 status='1' 进行软删除（如继承 ModelMy 的模型）
+        return getattr(self.model, "__status_delete__", False)
+
     def _soft_delete_values(self) -> dict[str, Any]:
         """返回 UPDATE 设置软删除字段所需的 values 字典。"""
         data: dict[str, Any] = {"is_deleted": True, "deleted_time": datetime.now(UTC)}
@@ -264,6 +269,14 @@ class CRUDBase[ModelType: ModelMixin, CreateSchemaType, UpdateSchemaType]:
                 sql = update(self.model).where(pk.in_(ids)).where(
                     getattr(self.model, "is_deleted") == false()
                 ).values(**self._soft_delete_values())
+            elif self._supports_status_delete:
+                # ModelMy 模式：将 status 标记为 '1'（停用/软删除），同时更新 updated_time 和 updated_id
+                values: dict[str, Any] = {"status": "1"}
+                if hasattr(self.model, "updated_time"):
+                    values["updated_time"] = datetime.now()
+                if self.auth.user.id and hasattr(self.model, "updated_id"):
+                    values["updated_id"] = self.auth.user.id
+                sql = update(self.model).where(pk.in_(ids)).values(**values)
             else:
                 sql = delete(self.model).where(pk.in_(ids))
             await self.db.execute(sql)

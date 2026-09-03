@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.ext.asyncio import AsyncAttrs
 from sqlalchemy.orm import DeclarativeBase, Mapped, declared_attr, mapped_column, relationship
 
@@ -169,3 +169,104 @@ class UserMixin(MappedBase):
             foreign_keys=lambda: self.deleted_id,  # pyright: ignore[reportArgumentType]
             uselist=False,
         )
+
+
+class ModelMy(MappedBase):
+    """自定义通用业务模型类（无软删除物理字段，以 status='1' 标识停用/删除）
+
+    包含字段：
+    - id: int 主键自增
+    - uuid: varchar(64) UUID全局唯一标识
+    - status: varchar(8) 是否启用(0:启用 1:禁用)
+    - description: text 备注/描述
+    - created_time: datetime 创建时间
+    - updated_time: datetime 更新时间
+    - created_id: int 创建人ID
+    - updated_id: int 更新人ID
+    - created_by: 关联创建人模型 (joinedload)
+    - updated_by: 关联更新人模型 (joinedload)
+
+    删除行为：
+    - 调用 delete() 时不执行真正的 SQL 物理删除，而是将 status 更新为 '1'（禁用），并记录 updated_time 与 updated_id。
+    查询行为：
+    - list() / page() / get() 无任何额外的隐式过滤条件，直接查表中现存的真实数据，由前端展示启用/禁用状态。
+    """
+
+    __abstract__: bool = True
+    __status_delete__: bool = True
+
+    id: Mapped[int] = mapped_column(
+        Integer,
+        primary_key=True,
+        autoincrement=True,
+        comment="主键ID",
+        index=True,
+    )
+    uuid: Mapped[str] = mapped_column(
+        String(64),
+        default=uuid4_str,
+        nullable=False,
+        unique=True,
+        comment="UUID全局唯一标识",
+        index=True,
+    )
+    status: Mapped[str] = mapped_column(
+        String(8),
+        default="0",
+        nullable=False,
+        comment="是否启用(0:启用 1:禁用)",
+        index=True,
+    )
+    description: Mapped[str | None] = mapped_column(
+        Text,
+        default=None,
+        nullable=True,
+        comment="备注/描述",
+    )
+    created_time: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.now,
+        nullable=False,
+        comment="创建时间",
+        index=True,
+    )
+    updated_time: Mapped[datetime] = mapped_column(
+        DateTime,
+        default=datetime.now,
+        onupdate=datetime.now,
+        nullable=False,
+        comment="更新时间",
+    )
+    created_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("sys_user.id", ondelete="RESTRICT", onupdate="CASCADE"),
+        nullable=False,
+        index=True,
+        comment="创建人ID",
+    )
+    updated_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("sys_user.id", ondelete="RESTRICT", onupdate="CASCADE"),
+        nullable=False,
+        index=True,
+        comment="更新人ID",
+    )
+
+    @declared_attr
+    def created_by(self):
+        """创建人关联关系"""
+        return relationship(
+            "UserModel",
+            foreign_keys=lambda: self.created_id,  # pyright: ignore[reportArgumentType]
+            uselist=False,
+        )
+
+    @declared_attr
+    def updated_by(self):
+        """更新人关联关系"""
+        return relationship(
+            "UserModel",
+            foreign_keys=lambda: self.updated_id,  # pyright: ignore[reportArgumentType]
+            uselist=False,
+        )
+
