@@ -192,6 +192,8 @@ import type { FormItem } from "@/components/forms/fa-form/index.vue";
 import type { ColumnOption } from "@/types/component";
 import FaDescriptions from "@/components/display/fa-descriptions/index.vue";
 import FaForm from "@/components/forms/fa-form/index.vue";
+import { h } from "vue";
+import { ElTag } from "element-plus";
 import ProduceComponentAPI, {
   type ProduceComponentForm,
   type ProduceComponentPageQuery,
@@ -343,29 +345,34 @@ const {
       { type: "selection", width: 48, fixed: "left", align: "center", headerAlign: "center" },
       { prop: "project_id", label: "所属项目", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "name", label: "部件名称", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "code", label: "部件编码", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "count", label: "数量", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "tmass", label: "总重", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "code", label: "部件编码", minWidth: 70, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "count", label: "数量", minWidth: 50, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "tmass", label: "总重", minWidth: 70, showOverflowTooltip: true, headerAlign: "center" },
       {
         prop: "status",
         label: "状态",
-        width: 88,
+        width: 70,
         align: "center",
         headerAlign: "center",
-        status: {
-          "0": { type: "success", text: "启用" },
-          "1": { type: "info", text: "停用" },
+        formatter: (row: ProduceComponentTable) => {
+          const isEnabled = String(row.status) === "0";
+          return h(
+            ElTag,
+            { type: isEnabled ? "success" : "danger" },
+            () => (isEnabled ? "启用" : "禁用")
+          );
         },
       },
-      { prop: "description", label: "备注/描述", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "description", label: "备注/描述", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {
         prop: "created_by",
         label: "创建人",
         minWidth: 100,
         headerAlign: "center",
         formatter: (row: ProduceComponentTable) => row.created_by?.name ?? "—",
+        visible: false,
       },
       {
         prop: "updated_by",
@@ -373,11 +380,12 @@ const {
         minWidth: 100,
         headerAlign: "center",
         formatter: (row: ProduceComponentTable) => row.updated_by?.name ?? "—",
+        visible: false,
       },
       {
         prop: "operation",
         label: "操作",
-        width: 180,
+        width: 140,
         fixed: "right",
         align: "center",
         headerAlign: "center",
@@ -423,7 +431,7 @@ const detailItems: import("@/components/display/fa-descriptions/index.vue").Desc
   { label: "部件编码", prop: "code" },
   { label: "数量", prop: "count" },
   { label: "总重", prop: "tmass" },
-  { label: "状态", prop: "status", tag: { map: { "0": { type: "success", text: "启用" }, "1": { type: "danger", text: "停用" } } } },
+  { label: "状态", prop: "status", tag: { map: { "0": { type: "success", text: "启用" }, "1": { type: "danger", text: "禁用" } } } },
   { label: "备注/描述", prop: "description" },
   { label: "创建时间", prop: "created_time" },
   { label: "更新时间", prop: "updated_time" },
@@ -440,6 +448,8 @@ const projectLoading = ref(false);
 const totalProjectPages = computed(() =>
   Math.max(1, Math.ceil(projectTotal.value / projectPageSize.value))
 );
+
+const formData = ref<ProduceComponentForm>(createInitialFormData());
 
 async function fetchProjectOptions(page = 1) {
   projectLoading.value = true;
@@ -494,8 +504,6 @@ watch(
 onMounted(() => {
   fetchProjectOptions(1);
 });
-
-const formData = ref<ProduceComponentForm>(createInitialFormData());
 
 const rules = reactive({
   project_id: [{ required: true, message: "请选择所属项目", trigger: "change" }],
@@ -628,7 +636,7 @@ function buildRowActions(row: ProduceComponentTable): TableOperationAction[] {
 
 function formatOperationCell(row: ProduceComponentTable) {
   return renderTableOperationCell(buildRowActions(row), {
-    wrapperClass: "inline-flex flex-wrap items-center justify-end gap-1",
+    wrapperClass: "inline-flex flex-wrap items-center justify-center gap-1.5 action-btn-group",
   });
 }
 
@@ -747,6 +755,14 @@ async function handleCrudImportUpload(formData: FormData) {
     .el-textarea {
       width: 100%;
     }
+  }
+}
+
+:deep(.action-btn-group) {
+  gap: 6px !important;
+
+  .hover-btn {
+    margin-right: 0 !important;
   }
 }
 </style>

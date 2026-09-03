@@ -165,9 +165,8 @@ import {{ class_name }}API, {
 {% if has_dict_column %}
 import { useDictStore } from "@/stores/modules/dict";
 {% endif %}
-{% if has_image_column %}
 import { h } from "vue";
-{% endif %}
+import { ElTag } from "element-plus";
 
 defineOptions({
   name: "{{ class_name }}",
@@ -356,14 +355,13 @@ const {
         width: 88,
         align: "center",
         headerAlign: "center",
-        status: {
-          {% if column.python_type == "str" %}
-          "0": { type: "success", text: "启用" },
-          "1": { type: "info", text: "停用" },
-          {% else %}
-          0: { type: "success", text: "启用" },
-          1: { type: "info", text: "停用" },
-          {% endif %}
+        formatter: (row: {{ class_name }}Table) => {
+          const isEnabled = String(row.status) === "0";
+          return h(
+            ElTag,
+            { type: isEnabled ? "success" : "danger" },
+            () => (isEnabled ? "启用" : "禁用")
+          );
         },
       },
       {% elif column.column_name == "created_id" %}
@@ -373,6 +371,7 @@ const {
         minWidth: 100,
         headerAlign: "center",
         formatter: (row: {{ class_name }}Table) => row.created_by?.name ?? "—",
+        visible: false,
       },
       {% elif column.column_name == "updated_id" %}
       {
@@ -381,11 +380,12 @@ const {
         minWidth: 100,
         headerAlign: "center",
         formatter: (row: {{ class_name }}Table) => row.updated_by?.name ?? "—",
+        visible: false,
       },
       {% elif column.column_name == "created_time" %}
-      { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {% elif column.column_name == "updated_time" %}
-      { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {% elif column.python_type == "bool" or column.html_type == "checkbox" %}
       {
         prop: "{{ column.column_name }}",
@@ -426,7 +426,7 @@ const {
       {
         prop: "operation",
         label: "操作",
-        width: 180,
+        width: 140,
         fixed: "right",
         align: "center",
         headerAlign: "center",
@@ -473,7 +473,7 @@ const detailItems: import("@/components/display/fa-descriptions/index.vue").Desc
   {% set parentheseIndex = column_comment.find("（") %}
   {% set comment = column_comment[:parentheseIndex] if parentheseIndex != -1 else column_comment %}
   {% if column.column_name == 'status' %}
-  { label: "状态", prop: "status", tag: { map: { "0": { type: "success", text: "启用" }, "1": { type: "danger", text: "停用" } } } },
+  { label: "状态", prop: "status", tag: { map: { "0": { type: "success", text: "启用" }, "1": { type: "danger", text: "禁用" } } } },
   {% elif column.column_name == 'created_id' %}
   { label: "创建人", prop: "created_by.name" },
   {% elif column.column_name == 'updated_id' %}
@@ -659,7 +659,7 @@ function buildRowActions(row: {{ class_name }}Table): TableOperationAction[] {
 
 function formatOperationCell(row: {{ class_name }}Table) {
   return renderTableOperationCell(buildRowActions(row), {
-    wrapperClass: "inline-flex flex-wrap items-center justify-end gap-1",
+    wrapperClass: "inline-flex flex-wrap items-center justify-center gap-1.5 action-btn-group",
   });
 }
 
@@ -763,4 +763,12 @@ async function handleCrudImportUpload(formData: FormData) {
 
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+:deep(.action-btn-group) {
+  gap: 6px !important;
+
+  .hover-btn {
+    margin-right: 0 !important;
+  }
+}
+</style>
