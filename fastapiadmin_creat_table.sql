@@ -1,13 +1,10 @@
-
-
-
 SET FOREIGN_KEY_CHECKS = 0;   -- 临时关闭外键约束检查
 
 -- =============================================
 -- 一、项目表
 -- =============================================
-DROP TABLE IF EXISTS `project`;
-CREATE TABLE `project` (
+DROP TABLE IF EXISTS `produce_project`;
+CREATE TABLE `produce_project` (
   `name` varchar(255) NOT NULL COMMENT '项目名称',
   `code` varchar(64) DEFAULT NULL COMMENT '项目编码',
   `no` varchar(64) DEFAULT NULL COMMENT '项目编号',
@@ -23,9 +20,9 @@ CREATE TABLE `project` (
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_name` (`name`),
-  UNIQUE KEY `uk_project_uuid` (`uuid`),
-  CONSTRAINT `fk_project_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_project_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  UNIQUE KEY `uk_produce_project_uuid` (`uuid`),
+  CONSTRAINT `fk_produce_project_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_project_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='项目信息表';
 
 
@@ -33,8 +30,8 @@ CREATE TABLE `project` (
 -- =============================================
 -- 二、部件表（一个项目对应多个部件）
 -- =============================================
-DROP TABLE IF EXISTS `component`;
-CREATE TABLE `component` (
+DROP TABLE IF EXISTS `produce_component`;
+CREATE TABLE `produce_component` (
   `project_id` int NOT NULL COMMENT '所属项目id',
   `name` varchar(255) NOT NULL COMMENT '部件名称',
   `code` varchar(64) DEFAULT NULL COMMENT '部件编码',
@@ -51,11 +48,11 @@ CREATE TABLE `component` (
   `updated_id` int NULL COMMENT '更新人ID',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_component_uuid` (`uuid`),
-  UNIQUE KEY `uk_component_project_id` (`project_id`, `name`),
-  CONSTRAINT `fk_component_project_id` FOREIGN KEY (`project_id`) REFERENCES `project` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_component_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_component_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  UNIQUE KEY `uk_produce_component_uuid` (`uuid`),
+  UNIQUE KEY `uk_produce_component_project_id` (`project_id`, `name`),
+  CONSTRAINT `fk_produce_component_project_id` FOREIGN KEY (`project_id`) REFERENCES `produce_project` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_component_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_component_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='部件信息表';
 
 
@@ -63,8 +60,8 @@ CREATE TABLE `component` (
 -- =============================================
 -- 三、工艺表
 -- =============================================
-DROP TABLE IF EXISTS `craft`;
-CREATE TABLE `craft` (
+DROP TABLE IF EXISTS `produce_craft`;
+CREATE TABLE `produce_craft` (
   `parent_id` int DEFAULT NULL COMMENT '父工艺ID',
   `name` varchar(255) NOT NULL COMMENT '工艺名称',
 
@@ -79,14 +76,14 @@ CREATE TABLE `craft` (
 
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_name` (`name`),
-  KEY `ix_craft_parent_id` (`parent_id`),
-  CONSTRAINT `fk_craft_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `craft` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_craft_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_craft_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  KEY `ix_produce_craft_parent_id` (`parent_id`),
+  CONSTRAINT `fk_produce_craft_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `produce_craft` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_craft_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_craft_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='工艺表';
 
 -- 插入主工艺
-INSERT INTO craft (id, parent_id, name) VALUES 
+INSERT INTO produce_craft (id, parent_id, name) VALUES 
 (1, NULL, '下料'),
 (2, NULL, '铆焊'),
 (3, NULL, '机加'),
@@ -106,8 +103,8 @@ INSERT INTO craft (id, parent_id, name) VALUES
 -- =============================================
 -- 四、生产工单表
 -- =============================================
-DROP TABLE IF EXISTS `worder`;
-CREATE TABLE `worder` (
+DROP TABLE IF EXISTS `produce_worder`;
+CREATE TABLE `produce_worder` (
   `no` varchar(32) NOT NULL COMMENT '单号',
   `component_id` int NOT NULL COMMENT '部件id',
   `craft_id` int NOT NULL COMMENT '工艺id',
@@ -129,21 +126,21 @@ CREATE TABLE `worder` (
   `updated_id` int NULL COMMENT '更新人ID',
 
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_worder_uuid` (`uuid`),
-  UNIQUE KEY `uk_worder_no` (`no`),
-  KEY `ix_worder_component_id` (`component_id`),
-  KEY `ix_worder_craft_id` (`craft_id`),
-  KEY `ix_worder_status` (`status`),
-  KEY `ix_worder_plan_end_time` (`plan_end_time`),
-  KEY `ix_worder_real_end_time` (`real_end_time`),
-  KEY `ix_worder_plan_user_id` (`plan_user_id`),
-  KEY `ix_worder_real_user_id` (`real_user_id`),
-  CONSTRAINT `fk_worder_component_id` FOREIGN KEY (`component_id`) REFERENCES `component` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_worder_craft_id` FOREIGN KEY (`craft_id`) REFERENCES `craft` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_worder_plan_user_id` FOREIGN KEY (`plan_user_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_worder_real_user_id` FOREIGN KEY (`real_user_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_worder_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
-  CONSTRAINT `fk_worder_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
+  UNIQUE KEY `uk_produce_worder_uuid` (`uuid`),
+  UNIQUE KEY `uk_produce_worder_no` (`no`),
+  KEY `ix_produce_worder_component_id` (`component_id`),
+  KEY `ix_produce_worder_craft_id` (`craft_id`),
+  KEY `ix_produce_worder_status` (`status`),
+  KEY `ix_produce_worder_plan_end_time` (`plan_end_time`),
+  KEY `ix_produce_worder_real_end_time` (`real_end_time`),
+  KEY `ix_produce_worder_plan_user_id` (`plan_user_id`),
+  KEY `ix_produce_worder_real_user_id` (`real_user_id`),
+  CONSTRAINT `fk_produce_worder_component_id` FOREIGN KEY (`component_id`) REFERENCES `produce_component` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_worder_craft_id` FOREIGN KEY (`craft_id`) REFERENCES `produce_craft` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_worder_plan_user_id` FOREIGN KEY (`plan_user_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_worder_real_user_id` FOREIGN KEY (`real_user_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_worder_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_worder_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='生产工单';
 
 
