@@ -227,13 +227,7 @@ export function useSettingsConfig() {
         handler: "grayMode",
         headerBarKey: null,
       },
-      {
-        key: "userEnableAi",
-        label: t("setting.basics.list.aiAssistant"),
-        type: "switch" as const,
-        handler: "aiAssistant",
-        headerBarKey: null,
-      },
+
       {
         key: "menuOpenWidth",
         label: t("setting.basics.list.menuWidth"),

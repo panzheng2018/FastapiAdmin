@@ -72,21 +72,15 @@ def register_exceptions(app: FastAPI) -> None:
 
 
 def register_routers(app: FastAPI) -> None:
-    from app.api.v1.module_ai import ai_router
     from app.api.v1.module_common import common_router
     from app.api.v1.module_generator import generator_router
     from app.api.v1.module_monitor import monitor_router
     from app.api.v1.module_system import system_router
-    from app.api.v1.module_task import task_router
-    from app.api.v1.module_storage import storage_router
 
     app.include_router(common_router)
     app.include_router(monitor_router)
     app.include_router(system_router)
-    app.include_router(ai_router)
     app.include_router(generator_router)
-    app.include_router(task_router)
-    app.include_router(storage_router)
 
     from app.core.discover import dynamic_router
     dynamic_router.init_app(app)

@@ -96,24 +96,6 @@ class SchedulerUtil:
         if event.code == EVENT_JOB_ERROR:
             exception = getattr(event, "exception", None)
             logger.error(f"任务 {job_id} 执行失败: {exception!s}")
-            from app.api.v1.module_task.cronjob.job.model import JobModel
-            try:
-                job = SchedulerUtil.get_job(job_id=job_id)
-                with Session(engine) as session:
-                    job_log = JobModel(
-                        job_id=job_id,
-                        job_name=job.name if job else None,
-                        trigger_type=SchedulerUtil._get_trigger_type(job_id) if job else "manual",
-                        status=JOB_STATUS_FAILED,
-                        error=str(exception),
-                        next_run_time=str(job.next_run_time) if job and job.next_run_time else None,
-                        job_state=SchedulerUtil._get_job_state(job) if job else None,
-                    )
-                    session.add(job_log)
-                    session.commit()
-                    logger.info(f"失败日志已记录: job_id={job_id}, id={job_log.id}")
-            except Exception as e:
-                logger.error(f"记录失败日志出错: job_id={job_id}, error={e}", exc_info=True)
         elif event.code == EVENT_JOB_MISSED:
             logger.warning(f"任务 {job_id} 错过执行时间")
         elif event.code == EVENT_JOB_EXECUTED:
