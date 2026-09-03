@@ -666,11 +666,19 @@ html.dark .el-card {
   }
 
   // 表头样式
-  .el-table__header-wrapper {
+  .el-table__header-wrapper,
+  .el-table__fixed-header-wrapper,
+  .el-table__header {
     th.el-table__cell {
       font-weight: 600;
       color: var(--fa-gray-700);
       background-color: var(--fa-gray-100);
+      text-align: center;
+
+      .cell {
+        text-align: center;
+        justify-content: center;
+      }
     }
   }
 
