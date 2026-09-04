@@ -615,4 +615,18 @@ async function handleCrudImportUpload(formData: FormData) {
     margin-right: 0 !important;
   }
 }
+
+:deep(.el-dialog__body) { padding-top: 0px !important; }
+
+:deep(.el-dialog__footer) { padding-bottom: 0px !important; }
+
+:deep(.el-dialog__header) { padding-top: 0px !important; }
+
+:deep(.crud-dialog-art-form) {
+  // 隐藏按钮空槽
+  .el-col:has(.mb-3) { display: none; }
+  // 描述的输入框
+  .el-form-item:has(.el-textarea) { margin-bottom: 0px !important; }
+}
+
 </style>

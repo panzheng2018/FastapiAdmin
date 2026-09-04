@@ -137,7 +137,7 @@ class PaginationQueryParam(BaseModel):
     """分页 —— order_by 以 JSON 字符串传递，避免 Depends() 模式下 list 字段被当 body 验证。"""
 
     page_no: int = Field(default=1, description="当前页码", ge=1)
-    page_size: int = Field(default=10, description="每页数量", ge=1, le=100)
+    page_size: int = Field(default=10, description="每页数量", ge=1, le=1000)
     order_by: Any = Field(
         default=None,
         description="排序字段 JSON 字符串, 格式:[{'field1': 'asc'}, {'field2': 'desc'}]",

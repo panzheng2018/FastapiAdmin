@@ -58,7 +58,7 @@
     <FaDialog
       v-model="dialogVisible.visible"
       :title="dialogVisible.title"
-      width="820px"
+      width="500px"
       dialog-class="crud-embed-dialog"
       modal-class="crud-embed-dialog"
       :form-mode="dialogVisible.type"
@@ -69,7 +69,7 @@
     >
       <template v-if="dialogVisible.type === 'detail'">
         <FaDescriptions
-          :column="2"
+          :column="1"
           :data="detailFormData"
           :items="detailItems"
           max-height="70vh"
@@ -85,10 +85,10 @@
           :items="dialogFormItems"
           :rules="rules"
           label-suffix=":"
-          :label-width="110"
-          label-position="right"
-          :span="12"
-          :gutter="16"
+          :label-width="100"
+          label-position="left"
+          :span="24"
+          :gutter="0"
           :show-reset="false"
           :show-submit="false"
           class="crud-dialog-art-form"
@@ -696,7 +696,7 @@ async function handleProjectChange(val?: number) {
 async function loadCrafts() {
   craftLoading.value = true;
   try {
-    const res = await ProduceCraftAPI.getProduceCraftList({ page_no: 1, page_size: 500 });
+    const res = await ProduceCraftAPI.getProduceCraftList({ page_no: 1, page_size: 100 });
     craftList.value = res.data.data?.items ?? [];
   } catch (err) {
     if (import.meta.env.DEV) console.error("加载工艺选项失败:", err);
@@ -708,7 +708,7 @@ async function loadCrafts() {
 async function loadUsers() {
   userLoading.value = true;
   try {
-    const res = await UserAPI.listUser({ page_no: 1, page_size: 200 });
+    const res = await UserAPI.listUser({ page_no: 1, page_size: 100 });
     userList.value = res.data.data?.items ?? [];
   } catch (err) {
     if (import.meta.env.DEV) console.error("加载用户列表失败:", err);
@@ -781,7 +781,6 @@ const dialogFormItems: FormItem[] = [
     key: "description",
     label: "描　　述",
     type: "input",
-    span: 24,
     props: {
       type: "textarea",
       rows: 4,
@@ -1030,22 +1029,30 @@ async function handleCrudImportUpload(formData: FormData) {
     }
   }
 
-  // 表单文本与数字输入控件宽度适当减少，更加紧凑美观
+  // 表单文本与输入控件撑满
   .el-form-item__content {
     .el-input,
     .el-input-number,
     .el-select,
     .el-date-editor,
+    .el-textarea,
     .custom-input-container {
-      max-width: 250px;
-      width: 100%;
-    }
-
-    // 描述多行文本跨栏自适应
-    .el-textarea {
-      max-width: 632px;
       width: 100%;
     }
   }
 }
+
+:deep(.el-dialog__body) { padding-top: 0px !important; }
+
+:deep(.el-dialog__footer) { padding-bottom: 0px !important; }
+
+:deep(.el-dialog__header) { padding-top: 0px !important; }
+
+:deep(.crud-dialog-art-form) {
+  // 隐藏按钮空槽
+  .el-col:has(.mb-3) { display: none; }
+  // 描述的输入框
+  .el-form-item:has(.el-textarea) { margin-bottom: 0px !important; }
+}
+
 </style>
