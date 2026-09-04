@@ -5,7 +5,6 @@
       <!-- 左列：主内容区 | 右列：侧边栏 -->
       <ElRow :gutter="20">
         <ElCol :xs="24" :md="18">
-          <Banner class="mb-5" />
 
           <ElRow :gutter="20">
             <ElCol :xs="24" :md="16">
@@ -87,47 +86,11 @@
                 </ElCol>
               </ElRow>
             </ElCol>
-            <ElCol :xs="24" :md="8" class="mb-5">
-              <FaTimelineListCard :list="timelineData" title="最近交易" subtitle="2024年12月20日" />
-            </ElCol>
-          </ElRow>
 
-          <ElRow :gutter="20">
-            <ElCol :xs="24" :sm="12" :md="12" class="mb-5">
-              <ElCard
-                shadow="hover"
-                class="fa-card overflow-hidden border border-(--el-border-color-lighter) rounded-xl flex flex-col h-138"
-              >
-                <template #header>
-                  <div class="flex flex-wrap gap-3 items-start justify-between w-full">
-                    <div>
-                      <span
-                        class="text-base font-semibold tracking-[0.02em]"
-                        style="color: var(--el-text-color-primary)"
-                        >日程日历</span
-                      >
-                      <p
-                        class="mt-0.5 text-xs font-normal leading-[1.45]"
-                        style="color: var(--el-text-color-secondary)"
-                      >
-                        点击日期添加或编辑（本地演示）
-                      </p>
-                    </div>
-                  </div>
-                </template>
-                <div>
-                  <FaCalendar />
-                </div>
-              </ElCard>
-            </ElCol>
-            <ElCol :xs="24" :sm="12" :md="12" class="mb-5">
-              <NewUser />
-            </ElCol>
           </ElRow>
         </ElCol>
 
         <ElCol :xs="24" :md="6" class="flex flex-col gap-5">
-          <QuickLinks class="mb-5" />
           <FaDataListCard
             class="mb-5"
             :maxCount="4"
@@ -137,21 +100,9 @@
             :showMoreButton="true"
             @more="handleMore"
           />
-          <TodoList class="mb-5" />
         </ElCol>
       </ElRow>
 
-      <ElRow :gutter="20">
-        <ElCol :xs="24" :sm="6" :md="6" class="mb-5">
-          <ImageCards />
-        </ElCol>
-        <ElCol :xs="24" :sm="6" :md="6" class="mb-5">
-          <ItBanners />
-        </ElCol>
-        <ElCol :xs="24" :sm="12" :md="12" class="mb-5">
-          <AboutProject />
-        </ElCol>
-      </ElRow>
     </template>
   </div>
 </template>
@@ -162,15 +113,7 @@ defineOptions({ name: "Home", inheritAttrs: false });
 import { ref, onMounted, defineAsyncComponent } from "vue";
 import { ElMessage } from "element-plus";
 import { getDashboardMock } from "@/mock/dashboard";
-import ImageCards from "./modules/image_cards.vue";
-import ItBanners from "./modules/it_banners.vue";
-import Banner from "./modules/banner.vue";
-import NewUser from "./modules/new-user.vue";
-import TodoList from "./modules/todo-list.vue";
 import CardList from "./modules/card-list.vue";
-import AboutProject from "./modules/about-project.vue";
-import QuickLinks from "./modules/quick-links.vue";
-
 const mock = getDashboardMock();
 const loading = ref(false);
 const healthList = ref(mock.health);
