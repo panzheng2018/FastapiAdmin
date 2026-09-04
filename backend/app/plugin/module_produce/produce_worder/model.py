@@ -2,9 +2,12 @@
 
 from datetime import datetime
 from sqlalchemy import Integer, DateTime, String, ForeignKey
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.base_model import ModelMy
+from app.api.v1.module_system.user.model import UserModel
+from app.plugin.module_produce.produce_craft.model import ProduceCraftModel
+from app.plugin.module_produce.produce_component.model import ProduceComponentModel
 
 
 class ProduceWorderModel(ModelMy):
@@ -23,4 +26,9 @@ class ProduceWorderModel(ModelMy):
     real_end_time: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, comment='实际完工时间')
     plan_user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id", ondelete="RESTRICT", onupdate="CASCADE"), nullable=False, comment='执行用户')
     real_user_id: Mapped[int | None] = mapped_column(ForeignKey("sys_user.id", ondelete="RESTRICT", onupdate="CASCADE"), nullable=True, comment='实际执行用户')
+
+    component: Mapped["ProduceComponentModel | None"] = relationship("ProduceComponentModel", foreign_keys=[component_id])
+    craft: Mapped["ProduceCraftModel | None"] = relationship("ProduceCraftModel", foreign_keys=[craft_id])
+    plan_user: Mapped["UserModel | None"] = relationship("UserModel", foreign_keys=[plan_user_id])
+    real_user: Mapped["UserModel | None"] = relationship("UserModel", foreign_keys=[real_user_id])
 

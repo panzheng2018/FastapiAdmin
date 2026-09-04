@@ -46,6 +46,10 @@ class ProduceWorderOutSchema(ProduceWorderCreateSchema, BaseSchema, UserBySchema
     工单管理响应模型
     """
     model_config = ConfigDict(from_attributes=True)
+    craft_name: str | None = Field(default=None, description="工艺名称")
+    plan_user_name: str | None = Field(default=None, description="执行用户名称")
+    real_user_name: str | None = Field(default=None, description="实际执行用户名称")
+    component_name: str | None = Field(default=None, description="部件名称")
 
 
 class ProduceWorderQueryParam(BaseQueryParam, UserByQueryParam):

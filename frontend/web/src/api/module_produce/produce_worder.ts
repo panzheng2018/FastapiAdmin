@@ -107,14 +107,18 @@ export interface ProduceWorderPageQuery extends PageQuery, UserByQueryParams {
 export interface ProduceWorderTable extends BaseType {
   no?: string;
   component_id?: number;
+  component_name?: string;
   craft_id?: number;
+  craft_name?: string;
   man_hour?: number;
   plan_count?: number;
   real_count?: number;
   plan_end_time?: string;
   real_end_time?: string;
   plan_user_id?: number;
+  plan_user_name?: string;
   real_user_id?: number;
+  real_user_name?: string;
   status?: string;
   description?: string;
 }

@@ -27,19 +27,42 @@ class ProduceWorderService:
         self.auth = auth
         self.db = db
 
+    @staticmethod
+    def _populate_names(item: ProduceWorderOutSchema, obj: Any) -> ProduceWorderOutSchema:
+        if getattr(obj, "craft", None):
+            item.craft_name = obj.craft.name
+        if getattr(obj, "plan_user", None):
+            item.plan_user_name = obj.plan_user.name or obj.plan_user.username
+        if getattr(obj, "real_user", None):
+            item.real_user_name = obj.real_user.name or obj.real_user.username
+        if getattr(obj, "component", None):
+            item.component_name = obj.component.name
+        return item
+
     async def detail(self, id: int) -> ProduceWorderOutSchema:
-        obj = await ProduceWorderCRUD(self.auth, self.db).get(id=id)
+        obj = await ProduceWorderCRUD(self.auth, self.db).get(
+            id=id, preload=["craft", "plan_user", "real_user", "component"]
+        )
         if not obj:
             raise CustomException(msg="该数据不存在")
-        return ProduceWorderOutSchema.model_validate(obj)
+        item = ProduceWorderOutSchema.model_validate(obj)
+        return self._populate_names(item, obj)
 
     async def get_list(
         self,
         search: ProduceWorderQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> list[ProduceWorderOutSchema]:
-        obj_list = await ProduceWorderCRUD(self.auth, self.db).get_list(search=search_to_dict(search), order_by=order_by)
-        return [ProduceWorderOutSchema.model_validate(obj) for obj in obj_list]
+        obj_list = await ProduceWorderCRUD(self.auth, self.db).get_list(
+            search=search_to_dict(search),
+            order_by=order_by,
+            preload=["craft", "plan_user", "real_user", "component"],
+        )
+        result = []
+        for obj in obj_list:
+            item = ProduceWorderOutSchema.model_validate(obj)
+            result.append(self._populate_names(item, obj))
+        return result
 
     async def page(
         self,
@@ -49,13 +72,19 @@ class ProduceWorderService:
         order_by: list[dict[str, str]] | None = None,
     ) -> PageResultSchema[ProduceWorderOutSchema]:
         offset = (page_no - 1) * page_size
-        return await ProduceWorderCRUD(self.auth, self.db).page(
+        page_result = await ProduceWorderCRUD(self.auth, self.db).page(
             offset=offset,
             limit=page_size,
             order_by=order_by or [{"id": "asc"}],
             search=search_to_dict(search, {}),
-            out_schema=ProduceWorderOutSchema,
+            preload=["craft", "plan_user", "real_user", "component"],
         )
+        items: list[ProduceWorderOutSchema] = []
+        for obj in page_result.items:
+            item = ProduceWorderOutSchema.model_validate(obj)
+            items.append(self._populate_names(item, obj))
+        page_result.items = items
+        return page_result
 
     async def create(self, data: ProduceWorderCreateSchema) -> ProduceWorderOutSchema:
         obj = await ProduceWorderCRUD(self.auth, self.db).get(no=data.no)
@@ -64,7 +93,7 @@ class ProduceWorderService:
         if data.real_user_id is None:
             data.real_user_id = data.plan_user_id
         obj = await ProduceWorderCRUD(self.auth, self.db).create(data=data)
-        return ProduceWorderOutSchema.model_validate(obj)
+        return await self.detail(obj.id)
 
     async def update(self, id: int, data: ProduceWorderUpdateSchema) -> ProduceWorderOutSchema:
         obj = await ProduceWorderCRUD(self.auth, self.db).get(id=id)
@@ -76,7 +105,7 @@ class ProduceWorderService:
             raise CustomException(msg="更新失败，单号重复")
 
         obj = await ProduceWorderCRUD(self.auth, self.db).update(id=id, data=data)
-        return ProduceWorderOutSchema.model_validate(obj)
+        return await self.detail(id)
 
     async def delete(self, ids: list[int]) -> None:
         if not ids:
