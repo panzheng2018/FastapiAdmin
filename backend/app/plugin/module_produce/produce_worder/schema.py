@@ -19,7 +19,7 @@ class ProduceWorderCreateSchema(BaseModel):
     real_end_time: DateTimeStr | None = Field(default=None, description='实际时间')
     plan_user_id: int = Field(default=..., description='执行用户')
     real_user_id: int | None = Field(default=None, description='实际用户')
-    status: str = Field(default="0", description='状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停')
+    status: str = Field(default="2", description='状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停')
     description: str | None = Field(default=None, description='备注/描述')
 
 
@@ -37,7 +37,7 @@ class ProduceWorderUpdateSchema(BaseModel):
     real_end_time: DateTimeStr | None = Field(default=None, description='实际时间')
     plan_user_id: int | None = Field(default=None, description='执行用户')
     real_user_id: int | None = Field(default=None, description='实际用户')
-    status: str | None = Field(default=None, description='状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停')
+    status: str | None = Field(default=None, description='状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停')
     description: str | None = Field(default=None, description='备注/描述')
 
 
@@ -67,4 +67,4 @@ class ProduceWorderQueryParam(BaseQueryParam, UserByQueryParam):
     real_end_time: datetime | None = Field(None, description="实际时间", json_schema_extra={"q": "eq"})
     plan_user_id: int | None = Field(None, description="计划执行用户", json_schema_extra={"q": "eq"})
     real_user_id: int | None = Field(None, description="实际用户", json_schema_extra={"q": "eq"})
-    status: str | None = Field(None, description="状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停", json_schema_extra={"q": "like"})
+    status: str | None = Field(None, description="状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停", json_schema_extra={"q": "like"})

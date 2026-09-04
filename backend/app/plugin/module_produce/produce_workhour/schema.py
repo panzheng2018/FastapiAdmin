@@ -16,7 +16,7 @@ class ProduceWorkhourCreateSchema(BaseModel):
     man_hour: int = Field(default=0, description='工时')
     plan_count: int = Field(default=1, description='数量')
     real_count: int | None = Field(default=None, description='实际数量')
-    status: str = Field(default="0", description='状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停')
+    status: str = Field(default="0", description='状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停')
     description: str | None = Field(default=None, description='备注/描述')
 
 
@@ -28,7 +28,7 @@ class ProduceWorkhourUpdateSchema(BaseModel):
     man_hour: int | None = Field(default=None, description='工时')
     plan_count: int | None = Field(default=None, description='数量')
     real_count: int | None = Field(default=None, description='实际数量')
-    status: str | None = Field(default=None, description='状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停')
+    status: str | None = Field(default=None, description='状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停')
     description: str | None = Field(default=None, description='备注/描述')
 
 
@@ -49,4 +49,4 @@ class ProduceWorkhourQueryParam(BaseQueryParam, UserByQueryParam):
     man_hour: int | None = Field(None, description="工时", json_schema_extra={"q": "eq"})
     plan_count: int | None = Field(None, description="数量", json_schema_extra={"q": "eq"})
     real_count: int | None = Field(None, description="实际数量", json_schema_extra={"q": "eq"})
-    status: str | None = Field(None, description="状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停", json_schema_extra={"q": "like"})
+    status: str | None = Field(None, description="状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停", json_schema_extra={"q": "like"})

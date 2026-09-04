@@ -121,7 +121,7 @@ CREATE TABLE `produce_worder` (
 
   `id` int NOT NULL AUTO_INCREMENT COMMENT '工单ID',  
   `uuid` varchar(64) NOT NULL DEFAULT (UUID()) COMMENT 'UUID',
-  `status` varchar(10) NOT NULL DEFAULT '0' COMMENT '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停',
+  `status` varchar(10) NOT NULL DEFAULT '2' COMMENT '状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停',
   `description` text NULL COMMENT '备注/描述',
   `created_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `updated_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',

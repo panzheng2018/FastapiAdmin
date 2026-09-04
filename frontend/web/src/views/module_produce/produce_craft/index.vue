@@ -751,13 +751,13 @@ async function handleCrudImportUpload(formData: FormData) {
   }
 }
 
-:deep(.el-dialog__body) { padding-top: 0px !important; }
+:deep(.el-dialog__header) { padding-top: 0px !important; }
 
 :deep(.el-dialog__footer) { padding-bottom: 0px !important; }
 
-:deep(.el-dialog__header) { padding-top: 0px !important; }
-
 :deep(.crud-dialog-art-form) {
+  // 移除组件自带的 pt-4 (16px)
+  padding-top: 0 !important;
   // 隐藏按钮空槽
   .el-col:has(.mb-3) { display: none; }
   // 描述的输入框

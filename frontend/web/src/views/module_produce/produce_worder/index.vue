@@ -319,19 +319,23 @@ defineOptions({
 
 // 常量定义
 const STATUS_CONFIG: Record<string, { type: "info" | "primary" | "success" | "danger" | "warning"; text: string }> = {
-  "0": { type: "info", text: "待生产" },
-  "1": { type: "primary", text: "生产中" },
-  "2": { type: "success", text: "已完成" },
-  "3": { type: "danger", text: "已取消" },
-  "4": { type: "warning", text: "已暂停" },
+  "0": { type: "success", text: "启用" },
+  "1": { type: "danger", text: "禁用" },
+  "2": { type: "info", text: "待生产" },
+  "3": { type: "primary", text: "生产中" },
+  "4": { type: "success", text: "已完成" },
+  "5": { type: "danger", text: "已取消" },
+  "6": { type: "warning", text: "已暂停" },
 };
 
 const STATUS_OPTIONS = [
-  { label: "待生产", value: "0" },
-  { label: "生产中", value: "1" },
-  { label: "已完成", value: "2" },
-  { label: "已取消", value: "3" },
-  { label: "已暂停", value: "4" },
+  { label: "启用", value: "0" },
+  { label: "禁用", value: "1" },
+  { label: "待生产", value: "2" },
+  { label: "生产中", value: "3" },
+  { label: "已完成", value: "4" },
+  { label: "已取消", value: "5" },
+  { label: "已暂停", value: "6" },
 ] as const;
 
 const createInitialFormData = (): ProduceWorderForm => ({
@@ -346,7 +350,7 @@ const createInitialFormData = (): ProduceWorderForm => ({
   real_end_time: undefined,
   plan_user_id: undefined,
   real_user_id: undefined,
-  status: "0",
+  status: "2",
   description: undefined,
 });
 
@@ -637,7 +641,7 @@ const detailItems: import("@/components/display/fa-descriptions/index.vue").Desc
   { label: "实际时间", prop: "real_end_time" },
   { label: "执行用户", prop: "plan_user_name" },
   { label: "实际用户", prop: "real_user_name" },
-  { label: "状态", prop: "status", tag: { map: { "0": { type: "info", text: "待生产" }, "1": { type: "primary", text: "生产中" }, "2": { type: "success", text: "已完成" }, "3": { type: "danger", text: "已取消" }, "4": { type: "warning", text: "已暂停" } } } },
+  { label: "状态", prop: "status", tag: { map: { "0": { type: "success", text: "启用" }, "1": { type: "danger", text: "禁用" }, "2": { type: "info", text: "待生产" }, "3": { type: "primary", text: "生产中" }, "4": { type: "success", text: "已完成" }, "5": { type: "danger", text: "已取消" }, "6": { type: "warning", text: "已暂停" } } } },
   { label: "备注/描述", prop: "description" },
   { label: "创建时间", prop: "created_time" },
   { label: "更新时间", prop: "updated_time" },
@@ -949,7 +953,7 @@ const dialogFormItems: FormItem[] = [
     type: "input",
     props: {
       type: "textarea",
-      rows: 4,
+      rows: 3,
       maxlength: 100,
       showWordLimit: true,
       placeholder: "请输入描述",
@@ -973,7 +977,7 @@ const crud = useCrudForm<ProduceWorderForm>({
       payload.real_user_id = payload.plan_user_id;
     }
     if (payload.status === undefined) {
-      payload.status = "0";
+      payload.status = "2";
     }
     if (payload.man_hour === undefined) {
       payload.man_hour = 0;
@@ -1209,13 +1213,13 @@ async function handleCrudImportUpload(formData: FormData) {
   }
 }
 
-:deep(.el-dialog__body) { padding-top: 0px !important; }
+:deep(.el-dialog__header) { padding-top: 0px !important; }
 
 :deep(.el-dialog__footer) { padding-bottom: 0px !important; }
 
-:deep(.el-dialog__header) { padding-top: 0px !important; }
-
 :deep(.crud-dialog-art-form) {
+  // 移除组件自带的 pt-4 (16px)
+  padding-top: 0 !important;
   // 隐藏按钮空槽
   .el-col:has(.mb-3) { display: none; }
   // 描述的输入框

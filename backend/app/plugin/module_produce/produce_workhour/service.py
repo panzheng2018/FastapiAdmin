@@ -139,7 +139,7 @@ class ProduceWorkhourService:
             'plan_count': '数量',
             'real_count': '实际数量',
             'id': '工时ID',
-            'status': '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停',
+            'status': '状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停',
             'description': '备注/描述',
             'created_time': '创建时间',
             'updated_time': '更新时间',
@@ -147,7 +147,15 @@ class ProduceWorkhourService:
         }
 
         data = obj_list.copy()
-        status_map = {"0": "待生产", "1": "生产中", "2": "已完成", "3": "已取消", "4": "已暂停"}
+        status_map = {
+            "0": "启用",
+            "1": "禁用",
+            "2": "待生产",
+            "3": "生产中",
+            "4": "已完成",
+            "5": "已取消",
+            "6": "已暂停",
+        }
         for item in data:
             item["status"] = status_map.get(str(item.get("status")), str(item.get("status") or ""))
             creator_info = item.get("created_id")
@@ -166,7 +174,7 @@ class ProduceWorkhourService:
             '工时': 'man_hour',
             '数量': 'plan_count',
             '实际数量': 'real_count',
-            '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停': 'status',
+            '状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停': 'status',
             '备注/描述': 'description',
         }
 
@@ -183,7 +191,15 @@ class ProduceWorkhourService:
                 raise CustomException(msg=f"导入文件缺少必要的列: {', '.join(missing_headers)}")
 
             mapped_rows = []
-            status_reverse = {"待生产": "0", "生产中": "1", "已完成": "2", "已取消": "3", "已暂停": "4"}
+            status_reverse = {
+                "启用": "0",
+                "禁用": "1",
+                "待生产": "2",
+                "生产中": "3",
+                "已完成": "4",
+                "已取消": "5",
+                "已暂停": "6",
+            }
             for row in rows:
                 item = {en: row.get(ch) for ch, en in header_dict.items()}
                 if "status" in item and item["status"] is not None:
@@ -252,7 +268,7 @@ class ProduceWorkhourService:
             '工时',
             '数量',
             '实际数量',
-            '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停',
+            '状态 0=启用 1=禁用 2=待生产 3=生产中 4=已完成 5=已取消 6=已暂停',
             '备注/描述',
         ]
         return ExcelUtil.get_excel_template(
