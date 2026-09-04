@@ -22,7 +22,7 @@ from .schema import (
 
 
 class ProduceWorkhourService:
-    """工时管理模块服务层（复用 produce_worder 表，对外移除完工时间与执行用户）"""
+    """工时管理模块服务层（复用 produce_worder 表，对外移除完工时间、执行用户、实际时间与实际用户）"""
 
     def __init__(self, auth: AuthSchema, db: AsyncSession) -> None:
         self.auth = auth
@@ -32,8 +32,6 @@ class ProduceWorkhourService:
     def _populate_names(item: ProduceWorkhourOutSchema, obj: Any) -> ProduceWorkhourOutSchema:
         if getattr(obj, "craft", None):
             item.craft_name = obj.craft.name
-        if getattr(obj, "real_user", None):
-            item.real_user_name = obj.real_user.name or obj.real_user.username
         if getattr(obj, "component", None):
             item.component_name = obj.component.name
             if getattr(obj.component, "project", None):
@@ -43,7 +41,7 @@ class ProduceWorkhourService:
 
     async def detail(self, id: int) -> ProduceWorkhourOutSchema:
         obj = await ProduceWorkhourCRUD(self.auth, self.db).get(
-            id=id, preload=["craft", "real_user", "component", "component.project"]
+            id=id, preload=["craft", "component", "component.project"]
         )
         if not obj:
             raise CustomException(msg="该数据不存在")
@@ -58,7 +56,7 @@ class ProduceWorkhourService:
         obj_list = await ProduceWorkhourCRUD(self.auth, self.db).get_list(
             search=search_to_dict(search),
             order_by=order_by,
-            preload=["craft", "real_user", "component", "component.project"],
+            preload=["craft", "component", "component.project"],
         )
         result = []
         for obj in obj_list:
@@ -79,7 +77,7 @@ class ProduceWorkhourService:
             limit=page_size,
             order_by=order_by or [{"id": "asc"}],
             search=search_to_dict(search, {}),
-            preload=["craft", "real_user", "component", "component.project"],
+            preload=["craft", "component", "component.project"],
         )
         items: list[ProduceWorkhourOutSchema] = []
         for obj in page_result.items:
@@ -100,8 +98,6 @@ class ProduceWorkhourService:
             create_dict["plan_end_time"] = datetime.now()
         if not create_dict.get("plan_user_id"):
             create_dict["plan_user_id"] = current_user_id
-        if not create_dict.get("real_user_id"):
-            create_dict["real_user_id"] = current_user_id
 
         obj = await ProduceWorkhourCRUD(self.auth, self.db).create(data=create_dict)
         return await self.detail(obj.id)
@@ -142,8 +138,6 @@ class ProduceWorkhourService:
             'man_hour': '工时',
             'plan_count': '数量',
             'real_count': '实际数量',
-            'real_end_time': '实际时间',
-            'real_user_name': '实际用户',
             'id': '工时ID',
             'status': '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停',
             'description': '备注/描述',
@@ -172,8 +166,6 @@ class ProduceWorkhourService:
             '工时': 'man_hour',
             '数量': 'plan_count',
             '实际数量': 'real_count',
-            '实际时间': 'real_end_time',
-            '实际用户': 'real_user_id',
             '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停': 'status',
             '备注/描述': 'description',
         }
@@ -226,8 +218,6 @@ class ProduceWorkhourService:
                     row_dict = create_schema.model_dump()
                     row_dict["plan_end_time"] = datetime.now()
                     row_dict["plan_user_id"] = current_user_id
-                    if not row_dict.get("real_user_id"):
-                        row_dict["real_user_id"] = current_user_id
 
                     exists_obj = await ProduceWorkhourCRUD(self.auth, self.db).get(no=create_schema.no)
                     if exists_obj:
@@ -262,8 +252,6 @@ class ProduceWorkhourService:
             '工时',
             '数量',
             '实际数量',
-            '实际时间',
-            '实际用户',
             '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停',
             '备注/描述',
         ]

@@ -279,7 +279,6 @@ import ProduceComponentAPI, {
 import ProduceCraftAPI, {
   type ProduceCraftTable,
 } from "@/api/module_produce/produce_craft";
-import { UserAPI, type UserInfo } from "@/api/module_system/user";
 import { computed, h, onMounted, reactive, ref, watch } from "vue";
 import { ElTag } from "element-plus";
 
@@ -313,8 +312,6 @@ const createInitialFormData = (): ProduceWorkhourForm => ({
   man_hour: 0,
   plan_count: 1,
   real_count: undefined,
-  real_end_time: undefined,
-  real_user_id: undefined,
   status: "0",
   description: undefined,
 });
@@ -326,8 +323,6 @@ type ProduceWorkhourSearchFormParams = {
   man_hour?: string | number;
   plan_count?: string;
   real_count?: string;
-  real_end_time?: string;
-  real_user_id?: string;
   status?: string;
 } & AuditSearchFormParams;
 
@@ -338,8 +333,6 @@ const searchForm = ref<ProduceWorkhourSearchFormParams>({
   man_hour: undefined,
   plan_count: undefined,
   real_count: undefined,
-  real_end_time: undefined,
-  real_user_id: undefined,
   status: undefined,
   created_id: undefined,
   updated_id: undefined,
@@ -477,19 +470,6 @@ const {
       },
       { prop: "man_hour", label: "工时", minWidth: 60, showOverflowTooltip: true, align: "center" },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "real_end_time", label: "实际时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      {
-        prop: "real_user_id",
-        label: "实际用户",
-        minWidth: 100,
-        showOverflowTooltip: true,
-        headerAlign: "center",
-        visible: false,
-        formatter: (row: ProduceWorkhourTable) => {
-          const u = userList.value.find((item) => item.id === row.real_user_id);
-          return row.real_user_name || u?.name || u?.username || "—";
-        },
-      },
       {
         prop: "status",
         label: "状态",
@@ -575,8 +555,6 @@ const detailItems: import("@/components/display/fa-descriptions/index.vue").Desc
   { label: "数量", prop: "plan_count" },
   { label: "工艺", prop: "craft_name" },
   { label: "工时", prop: "man_hour" },
-  { label: "实际时间", prop: "real_end_time" },
-  { label: "实际用户", prop: "real_user_name" },
   { label: "状态", prop: "status", tag: { map: { "0": { type: "info", text: "待生产" }, "1": { type: "primary", text: "生产中" }, "2": { type: "success", text: "已完成" }, "3": { type: "danger", text: "已取消" }, "4": { type: "warning", text: "已暂停" } } } },
   { label: "备注/描述", prop: "description" },
   { label: "创建时间", prop: "created_time" },
@@ -608,9 +586,6 @@ const rootCraftList = computed(() => {
     (item) => !item.parent_id || (dialogVisible.type === "update" && item.id === formData.value.craft_id)
   );
 });
-
-const userList = ref<UserInfo[]>([]);
-const userLoading = ref(false);
 
 let isGenerating = false;
 
@@ -741,18 +716,6 @@ async function loadCrafts() {
   }
 }
 
-async function loadUsers() {
-  userLoading.value = true;
-  try {
-    const res = await UserAPI.listUser({ page_no: 1, page_size: 1000 });
-    userList.value = res.data.data?.items ?? [];
-  } catch (err) {
-    if (import.meta.env.DEV) console.error("加载用户列表失败:", err);
-  } finally {
-    userLoading.value = false;
-  }
-}
-
 // 监听编辑态回显：若有 component_id 但无 project_id，反查部件获取所属 project_id 并加载该项目下的部件
 watch(
   () => formData.value.component_id,
@@ -791,7 +754,6 @@ watch(
 onMounted(() => {
   fetchProjectOptions(1);
   loadCrafts();
-  loadUsers();
 });
 
 const rules = reactive({
@@ -873,8 +835,6 @@ const handleSearch = async (params: ProduceWorkhourSearchFormParams) => {
     man_hour: params.man_hour,
     plan_count: params.plan_count,
     real_count: params.real_count,
-    real_end_time: params.real_end_time,
-    real_user_id: params.real_user_id,
     status: params.status,
     created_id: params.created_id ?? undefined,
     updated_id: params.updated_id ?? undefined,
@@ -898,8 +858,6 @@ const onResetSearch = async () => {
     man_hour: undefined,
     plan_count: undefined,
     real_count: undefined,
-    real_end_time: undefined,
-    real_user_id: undefined,
     status: undefined,
     created_id: undefined,
     updated_id: undefined,
