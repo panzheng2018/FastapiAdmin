@@ -15,7 +15,7 @@ fastapiadmin_cli = typer.Typer()
 alembic_cfg = Config("alembic.ini")
 
 
-# Trigger reload
+# Trigger reload check at 2026-09-04 15:15
 def create_app() -> FastAPI:
     """创建 FastAPI 应用实例并完成日志、中间件、路由与静态资源注册。
 

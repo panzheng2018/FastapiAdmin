@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from typing import Any
 
 from fastapi import UploadFile
@@ -43,11 +44,15 @@ class ProduceWreportService:
         return item
 
     async def detail(self, id: int) -> ProduceWreportOutSchema:
+        kwargs: dict[str, Any] = {"id": id}
+        if not self.auth.user.is_superuser:
+            kwargs["plan_user_id"] = self.auth.user.id
         obj = await ProduceWreportCRUD(self.auth, self.db).get(
-            id=id, preload=["craft", "plan_user", "real_user", "component", "component.project"]
+            preload=["craft", "plan_user", "real_user", "component", "component.project"],
+            **kwargs,
         )
         if not obj:
-            raise CustomException(msg="该数据不存在")
+            raise CustomException(msg="该数据不存在或无权查看")
         item = ProduceWreportOutSchema.model_validate(obj)
         return self._populate_names(item, obj)
 
@@ -56,8 +61,11 @@ class ProduceWreportService:
         search: ProduceWreportQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> list[ProduceWreportOutSchema]:
+        search_dict = search_to_dict(search) or {}
+        if not self.auth.user.is_superuser:
+            search_dict["plan_user_id"] = self.auth.user.id
         obj_list = await ProduceWreportCRUD(self.auth, self.db).get_list(
-            search=search_to_dict(search),
+            search=search_dict,
             order_by=order_by,
             preload=["craft", "plan_user", "real_user", "component", "component.project"],
         )
@@ -75,11 +83,14 @@ class ProduceWreportService:
         order_by: list[dict[str, str]] | None = None,
     ) -> PageResultSchema[ProduceWreportOutSchema]:
         offset = (page_no - 1) * page_size
+        search_dict = search_to_dict(search, {})
+        if not self.auth.user.is_superuser:
+            search_dict["plan_user_id"] = self.auth.user.id
         page_result = await ProduceWreportCRUD(self.auth, self.db).page(
             offset=offset,
             limit=page_size,
             order_by=order_by or [{"id": "asc"}],
-            search=search_to_dict(search, {}),
+            search=search_dict,
             preload=["craft", "plan_user", "real_user", "component", "component.project"],
         )
         items: list[ProduceWreportOutSchema] = []
@@ -90,6 +101,8 @@ class ProduceWreportService:
         return page_result
 
     async def create(self, data: ProduceWreportCreateSchema) -> ProduceWreportOutSchema:
+        if not self.auth.user.is_superuser:
+            data.plan_user_id = self.auth.user.id
         obj = await ProduceWreportCRUD(self.auth, self.db).get(no=data.no)
         if obj:
             raise CustomException(msg="创建失败，单号已存在")
@@ -99,13 +112,23 @@ class ProduceWreportService:
         return await self.detail(obj.id)
 
     async def update(self, id: int, data: ProduceWreportUpdateSchema) -> ProduceWreportOutSchema:
-        obj = await ProduceWreportCRUD(self.auth, self.db).get(id=id)
+        kwargs: dict[str, Any] = {"id": id}
+        if not self.auth.user.is_superuser:
+            kwargs["plan_user_id"] = self.auth.user.id
+            if data.plan_user_id is not None:
+                data.plan_user_id = self.auth.user.id
+        obj = await ProduceWreportCRUD(self.auth, self.db).get(**kwargs)
         if not obj:
-            raise CustomException(msg="更新失败，该数据不存在")
+            raise CustomException(msg="更新失败，该数据不存在或无权操作")
 
-        exist_obj = await ProduceWreportCRUD(self.auth, self.db).get(no=data.no)
-        if exist_obj and exist_obj.id != id:
-            raise CustomException(msg="更新失败，单号重复")
+        if data.no:
+            exist_obj = await ProduceWreportCRUD(self.auth, self.db).get(no=data.no)
+            if exist_obj and exist_obj.id != id:
+                raise CustomException(msg="更新失败，单号重复")
+
+        # 状态修改为 "4"（已完成）时，同时将实际时间设置为后端服务器当前时间
+        if str(data.status) == "4":
+            data.real_end_time = datetime.now()
 
         obj = await ProduceWreportCRUD(self.auth, self.db).update(id=id, data=data)
         return await self.detail(id)
@@ -113,14 +136,23 @@ class ProduceWreportService:
     async def delete(self, ids: list[int]) -> None:
         if not ids:
             raise CustomException(msg="删除失败，删除对象不能为空")
-        objs = await ProduceWreportCRUD(self.auth, self.db).get_list(search={"id": ("in", ids)})
+        search_params: dict[str, Any] = {"id": ("in", ids)}
+        if not self.auth.user.is_superuser:
+            search_params["plan_user_id"] = self.auth.user.id
+        objs = await ProduceWreportCRUD(self.auth, self.db).get_list(search=search_params)
         obj_map = {o.id: o for o in objs}
         for id_ in ids:
             if id_ not in obj_map:
-                raise CustomException(msg="删除失败，该数据不存在")
+                raise CustomException(msg="删除失败，该数据不存在或无权操作")
         await ProduceWreportCRUD(self.auth, self.db).delete(ids=ids)
 
     async def set_available(self, data: BatchSetAvailable) -> None:
+        if not self.auth.user.is_superuser:
+            objs = await ProduceWreportCRUD(self.auth, self.db).get_list(
+                search={"id": ("in", data.ids), "plan_user_id": self.auth.user.id}
+            )
+            if len(objs) != len(data.ids):
+                raise CustomException(msg="批量设置失败，部分数据不存在或无权操作")
         await ProduceWreportCRUD(self.auth, self.db).set(ids=data.ids, status=data.status)
 
     @staticmethod

@@ -505,7 +505,7 @@ const {
       {
         prop: "component_id",
         label: "所属部件",
-        minWidth: 120,
+        minWidth: 110,
         showOverflowTooltip: true,
         headerAlign: "center",
         formatter: (row: ProduceWorderTable) => row.component_name || row.component_id || "—",
@@ -527,7 +527,7 @@ const {
       },
       { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "plan_end_time", label: "完工时间", minWidth: 100, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "plan_end_time", label: "完工时间", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "real_end_time", label: "实际时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {
         prop: "plan_user_id",
@@ -1104,8 +1104,17 @@ async function handleSubmit() {
 
 const deleteRow = async (row: ProduceWorderTable) => {
   if (!row[PK]) return;
+  const projectName = row.project_name || "—";
+  const componentName =
+    row.component_name ||
+    componentList.value.find((c) => c.id === row.component_id)?.name ||
+    (row.component_id ? `部件#${row.component_id}` : "—");
+  const orderNo = row.no || row[PK];
+
   try {
-    await confirmDelete(`确定删除该工单管理吗？此操作不可恢复！`);
+    await confirmDelete(
+      `确定删除工单【${orderNo}】（项目：${projectName}，部件：${componentName}）吗？此操作不可恢复！`
+    );
     await ProduceWorderAPI.deleteProduceWorder([row[PK] as number]);
     faTableRef.value?.elTableRef?.clearSelection();
     await refreshRemove();
@@ -1174,6 +1183,27 @@ async function handleCrudImportUpload(formData: FormData) {
 
   .hover-btn {
     margin-right: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    // 第1个（详情）与第3个（删除）图标为 16px
+    .fa-svg-icon {
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+    }
+  }
+
+  // 第2个（编辑）图标为 18px
+  span:nth-child(2) .hover-btn .fa-svg-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
 }
 

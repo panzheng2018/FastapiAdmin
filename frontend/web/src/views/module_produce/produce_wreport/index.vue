@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="fa-full-height">
     <FaSearchBar
       v-show="showSearchBar"
@@ -232,14 +232,14 @@
             </ElSelect>
           </template>
 
-          <!-- 5. 执行用户：下拉菜单（根据选中工艺的岗位ID动态过滤，未选工艺时显示为空） -->
+          <!-- 5. 执行用户：下拉菜单（根据选中工艺的岗位ID动态过滤；普通用户固定为自己） -->
           <template #plan_user_id>
             <ElSelect
               v-model="formData.plan_user_id"
-              :placeholder="!formData.craft_id ? '请先选择工艺' : (targetPositionName ? `请选择${targetPositionName}` : '请选择执行用户')"
-              :disabled="!formData.craft_id"
+              :placeholder="!isSuperuser ? (userStore.info.name || userStore.info.username || '当前用户') : (!formData.craft_id ? '请先选择工艺' : (targetPositionName ? `请选择${targetPositionName}` : '请选择执行用户'))"
+              :disabled="!isSuperuser || !formData.craft_id"
               filterable
-              clearable
+              :clearable="isSuperuser"
               :loading="userLoading"
               class="w-full custom-input-container"
               :no-data-text="!formData.craft_id ? '请先选择工艺' : (targetPositionId ? '该岗位暂无配置人员' : '无可选用户')"
@@ -308,14 +308,18 @@ import ProduceCraftAPI, {
   type ProduceCraftTable,
 } from "@/api/module_produce/produce_craft";
 import { UserAPI, type UserInfo } from "@/api/module_system/user";
+import { useUserStore } from "@stores";
 import { computed, h, onMounted, reactive, ref, watch } from "vue";
-import { ElTag } from "element-plus";
+import { ElTag, ElMessage } from "element-plus";
 
 defineOptions({
   name: "ProduceWreport",
   inheritAttrs: false,
 });
 
+const userStore = useUserStore();
+const isSuperuser = computed(() => !!userStore.info.is_superuser);
+const currentUserId = computed(() => userStore.info.id);
 
 // 常量定义
 const STATUS_CONFIG: Record<string, { type: "info" | "primary" | "success" | "danger" | "warning"; text: string }> = {
@@ -348,8 +352,8 @@ const createInitialFormData = (): ProduceWreportForm => ({
   real_count: undefined,
   plan_end_time: undefined,
   real_end_time: undefined,
-  plan_user_id: undefined,
-  real_user_id: undefined,
+  plan_user_id: !isSuperuser.value ? currentUserId.value : undefined,
+  real_user_id: !isSuperuser.value ? currentUserId.value : undefined,
   status: "2",
   description: undefined,
 });
@@ -390,61 +394,67 @@ const showSearchBar = ref(false);
 const searchBarRef = ref<{ validate: () => Promise<boolean> } | null>(null);
 const searchBarRules: Record<string, unknown> = {};
 
-/** 业务搜索项（审计四字段由 FaSearchBar 的 includeAudit 属性追加） */
-const businessSearchItems = computed(() => [
-  {
-    label: "单号",
-    key: "no",
-    type: "input",
-    placeholder: "请输入单号",
-    clearable: true,
-    span: 6,
-  },
-  {
-    label: "所属部件",
-    key: "component_id",
-    type: "input",
-    placeholder: "请输入所属部件",
-    clearable: true,
-    span: 6,
-  },
-  {
-    label: "数量",
-    key: "plan_count",
-    type: "input",
-    placeholder: "请输入数量",
-    clearable: true,
-    span: 6,
-  },
-  {
-    label: "工艺",
-    key: "craft_id",
-    type: "input",
-    placeholder: "请输入工艺",
-    clearable: true,
-    span: 6,
-  },
-  {
-    label: "完工时间",
-    key: "plan_end_time",
-    type: "date-picker",
-    props: {
-      type: "date",
-      valueFormat: "YYYY-MM-DD",
+/** 业务搜索项（超级管理员可搜索任意执行用户，非管理员只能查看自己的工单故无需该搜索项） */
+const businessSearchItems = computed(() => {
+  const items: any[] = [
+    {
+      label: "单号",
+      key: "no",
+      type: "input",
+      placeholder: "请输入单号",
       clearable: true,
-      placeholder: "请选择完工时间",
+      span: 6,
     },
-    span: 6,
-  },
-  {
-    label: "执行用户",
-    key: "plan_user_id",
-    type: "input",
-    placeholder: "请输入执行用户",
-    clearable: true,
-    span: 6,
-  },
-  {
+    {
+      label: "所属部件",
+      key: "component_id",
+      type: "input",
+      placeholder: "请输入所属部件",
+      clearable: true,
+      span: 6,
+    },
+    {
+      label: "数量",
+      key: "plan_count",
+      type: "input",
+      placeholder: "请输入数量",
+      clearable: true,
+      span: 6,
+    },
+    {
+      label: "工艺",
+      key: "craft_id",
+      type: "input",
+      placeholder: "请输入工艺",
+      clearable: true,
+      span: 6,
+    },
+    {
+      label: "完工时间",
+      key: "plan_end_time",
+      type: "date-picker",
+      props: {
+        type: "date",
+        valueFormat: "YYYY-MM-DD",
+        clearable: true,
+        placeholder: "请选择完工时间",
+      },
+      span: 6,
+    },
+  ];
+
+  if (isSuperuser.value) {
+    items.push({
+      label: "执行用户",
+      key: "plan_user_id",
+      type: "input",
+      placeholder: "请输入执行用户",
+      clearable: true,
+      span: 6,
+    });
+  }
+
+  items.push({
     label: "状态",
     key: "status",
     type: "select",
@@ -454,8 +464,10 @@ const businessSearchItems = computed(() => [
       clearable: true,
     },
     span: 6,
-  },
-]);
+  });
+
+  return items;
+});
 
 
 const faTableRef = ref<{ elTableRef?: { clearSelection: () => void } } | null>(null);
@@ -491,13 +503,14 @@ const {
       order_by: JSON.stringify([{ id: "desc" }]),
     },
     columnsFactory: (): ColumnOption<ProduceWreportTable>[] => [
-      { type: "globalIndex", width: 56, label: "序号", align: "center", headerAlign: "center", visible: false },
-      { type: "selection", width: 48, fixed: "left", align: "center", headerAlign: "center" },
-      { prop: "no", label: "单号", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
+      { type: "globalIndex", label: "序号", width: 50, fixed: "left", align: "center", headerAlign: "center", visible: false },
+      { type: "selection", width: 45, fixed: "left", align: "center", headerAlign: "center" },
+      { prop: "no", label: "单号", minWidth: 120, fixed: "left", showOverflowTooltip: true, headerAlign: "center" },
       {
         prop: "project_name",
         label: "所属项目",
         minWidth: 120,
+        fixed: "left",
         showOverflowTooltip: true,
         headerAlign: "center",
         formatter: (row: ProduceWreportTable) => row.project_name || "—",
@@ -506,15 +519,16 @@ const {
         prop: "component_id",
         label: "所属部件",
         minWidth: 120,
+        fixed: "left",
         showOverflowTooltip: true,
         headerAlign: "center",
         formatter: (row: ProduceWreportTable) => row.component_name || row.component_id || "—",
       },
-      { prop: "plan_count", label: "数量", minWidth: 40, showOverflowTooltip: true, align: "center" },
+      { prop: "plan_count", label: "数量", minWidth: 55, showOverflowTooltip: true, align: "center" },
       {
         prop: "craft_id",
         label: "工艺",
-        minWidth: 40,
+        minWidth: 55,
         showOverflowTooltip: true,
         align: "center",
         formatter: (row: ProduceWreportTable) => {
@@ -525,14 +539,14 @@ const {
           );
         },
       },
-      { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "plan_end_time", label: "完工时间", minWidth: 100, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "real_end_time", label: "实际时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      { prop: "plan_end_time", label: "完工时间", minWidth: 180, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "real_end_time", label: "实际时间", minWidth: 180, showOverflowTooltip: true, headerAlign: "center", formatter: (row: ProduceWreportTable) => row.real_end_time || "—" },
       {
         prop: "plan_user_id",
         label: "执行用户",
-        minWidth: 60,
+        minWidth: 90,
         showOverflowTooltip: true,
         align: "center",
         formatter: (row: ProduceWreportTable) => {
@@ -543,7 +557,7 @@ const {
       {
         prop: "real_user_id",
         label: "实际用户",
-        minWidth: 100,
+        minWidth: 90,
         showOverflowTooltip: true,
         headerAlign: "center",
         visible: false,
@@ -552,10 +566,30 @@ const {
           return row.real_user_name || u?.name || u?.username || "—";
         },
       },
+      { prop: "description", label: "备注/描述", minWidth: 130, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      {
+        prop: "created_by",
+        label: "创建人",
+        minWidth: 80,
+        headerAlign: "center",
+        formatter: (row: ProduceWreportTable) => row.created_by?.name ?? "—",
+        visible: false,
+      },
+      {
+        prop: "updated_by",
+        label: "更新人",
+        minWidth: 80,
+        headerAlign: "center",
+        formatter: (row: ProduceWreportTable) => row.updated_by?.name ?? "—",
+        visible: false,
+      },
       {
         prop: "status",
         label: "状态",
         width: 85,
+        fixed: "right",
         align: "center",
         headerAlign: "center",
         formatter: (row: ProduceWreportTable) => {
@@ -568,29 +602,10 @@ const {
           );
         },
       },
-      { prop: "description", label: "备注/描述", minWidth: 120, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      {
-        prop: "created_by",
-        label: "创建人",
-        minWidth: 100,
-        headerAlign: "center",
-        formatter: (row: ProduceWreportTable) => row.created_by?.name ?? "—",
-        visible: false,
-      },
-      {
-        prop: "updated_by",
-        label: "更新人",
-        minWidth: 100,
-        headerAlign: "center",
-        formatter: (row: ProduceWreportTable) => row.updated_by?.name ?? "—",
-        visible: false,
-      },
       {
         prop: "operation",
         label: "操作",
-        width: 140,
+        width: 135,
         fixed: "right",
         align: "center",
         headerAlign: "center",
@@ -694,6 +709,20 @@ const targetPositionName = computed(() => {
 
 /** 根据工艺岗位ID过滤出的执行用户列表 */
 const filteredPlanUserList = computed(() => {
+  if (!isSuperuser.value) {
+    const me = userList.value.find((u) => u.id === currentUserId.value);
+    if (me) return [me];
+    if (currentUserId.value) {
+      return [
+        {
+          id: currentUserId.value,
+          name: userStore.info.name || "",
+          username: userStore.info.username || "",
+        } as UserInfo,
+      ];
+    }
+    return [];
+  }
   // 如果还没有选中工艺，则执行用户列表为空
   if (!formData.value.craft_id) {
     return [];
@@ -728,6 +757,10 @@ const filteredPlanUserList = computed(() => {
 watch(
   () => formData.value.craft_id,
   (newCraftId, oldCraftId) => {
+    if (!isSuperuser.value) {
+      formData.value.plan_user_id = currentUserId.value;
+      return;
+    }
     if (!newCraftId) {
       formData.value.plan_user_id = undefined;
       return;
@@ -973,7 +1006,10 @@ const crud = useCrudForm<ProduceWreportForm>({
   detailApi: (id: number) => ProduceWreportAPI.getProduceWreportDetail(id),
   createApi: (data: ProduceWreportForm) => {
     const { project_id, ...payload } = data;
-    if (!payload.real_user_id && payload.plan_user_id) {
+    if (!isSuperuser.value && currentUserId.value) {
+      payload.plan_user_id = currentUserId.value;
+      payload.real_user_id = currentUserId.value;
+    } else if (!payload.real_user_id && payload.plan_user_id) {
       payload.real_user_id = payload.plan_user_id;
     }
     if (payload.status === undefined) {
@@ -986,6 +1022,9 @@ const crud = useCrudForm<ProduceWreportForm>({
   },
   updateApi: (id: number, data: ProduceWreportForm) => {
     const { project_id, ...payload } = data;
+    if (!isSuperuser.value && currentUserId.value) {
+      payload.plan_user_id = currentUserId.value;
+    }
     return ProduceWreportAPI.updateProduceWreport(id, payload);
   },
   titles: { create: "新增", update: "修改", detail: "详情" },
@@ -1051,6 +1090,7 @@ const onResetSearch = async () => {
 };
 
 function buildRowActions(row: ProduceWreportTable): TableOperationAction[] {
+  const isCompleted = String(row.status) === "4";
   const all: TableOperationAction[] = [
     {
       key: "detail",
@@ -1060,12 +1100,14 @@ function buildRowActions(row: ProduceWreportTable): TableOperationAction[] {
       run: () => void crud.handleOpenDialog("detail", row[PK] as number),
     },
     {
-      key: "edit",
-      label: "编辑",
+      key: "submit",
+      label: "提交",
       artType: "edit",
-      icon: "ri:edit-2-line",
+      icon: "ri:check-line",
+      iconColor: "#67c23a",
       perm: "module_produce:produce_wreport:update",
-      run: () => void crud.handleOpenDialog("update", row[PK] as number),
+      disabled: isCompleted,
+      run: () => handleSubmitRow(row),
     },
     {
       key: "delete",
@@ -1089,6 +1131,10 @@ async function handleAdd() {
   createLoading.value = true;
   try {
     await crud.handleOpenDialog("create");
+    if (!isSuperuser.value && currentUserId.value) {
+      formData.value.plan_user_id = currentUserId.value;
+      formData.value.real_user_id = currentUserId.value;
+    }
   } finally {
     createLoading.value = false;
   }
@@ -1102,10 +1148,49 @@ async function handleSubmit() {
   await crud.handleSubmit();
 }
 
+/** 提交工单（将状态变更为已完成） */
+const handleSubmitRow = async (row: ProduceWreportTable) => {
+  if (!row[PK]) return;
+  if (String(row.status) === "4") {
+    ElMessage.warning("该工单已是已完成状态，无需重复提交");
+    return;
+  }
+  const projectName = row.project_name || "—";
+  const componentName =
+    row.component_name ||
+    componentList.value.find((c) => c.id === row.component_id)?.name ||
+    (row.component_id ? `部件#${row.component_id}` : "—");
+  const orderNo = row.no || row[PK];
+
+  try {
+    await confirmAction(
+      `确认将以下工单提交为已完成吗？
+      单号：${orderNo}
+      项目：${projectName}
+      部件：${componentName}`,
+      "提交确认"
+    );
+    await ProduceWreportAPI.updateProduceWreport(row[PK] as number, { status: "4" });
+    ElMessage.success("工单提交成功，状态已变更为已完成");
+    await refreshData();
+  } catch {
+    // 用户取消
+  }
+};
+
 const deleteRow = async (row: ProduceWreportTable) => {
   if (!row[PK]) return;
+  const projectName = row.project_name || "—";
+  const componentName =
+    row.component_name ||
+    componentList.value.find((c) => c.id === row.component_id)?.name ||
+    (row.component_id ? `部件#${row.component_id}` : "—");
+  const orderNo = row.no || row[PK];
+
   try {
-    await confirmDelete(`确定删除该提报工单吗？此操作不可恢复！`);
+    await confirmDelete(
+      `确定删除工单【${orderNo}】（项目：${projectName}，部件：${componentName}）吗？此操作不可恢复！`
+    );
     await ProduceWreportAPI.deleteProduceWreport([row[PK] as number]);
     faTableRef.value?.elTableRef?.clearSelection();
     await refreshRemove();
@@ -1174,6 +1259,37 @@ async function handleCrudImportUpload(formData: FormData) {
 
   .hover-btn {
     margin-right: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    // 详情、删除图标调整为精致小巧尺寸
+    .fa-svg-icon {
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+    }
+  }
+
+  // 提交对号按钮适度调小并适配淡绿风格
+  span:nth-child(2) .hover-btn {
+    color: #67c23a !important;
+    background-color: rgba(103, 194, 58, 0.12) !important;
+
+    .fa-svg-icon {
+      font-size: 18px !important;
+      width: 18px !important;
+      height: 18px !important;
+    }
+
+    &:hover {
+      background-color: rgba(103, 194, 58, 0.22) !important;
+      color: #529b2e !important;
+    }
   }
 }
 

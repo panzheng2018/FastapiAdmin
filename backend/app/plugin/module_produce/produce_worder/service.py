@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from typing import Any
 
 from fastapi import UploadFile
@@ -103,9 +104,14 @@ class ProduceWorderService:
         if not obj:
             raise CustomException(msg="更新失败，该数据不存在")
 
-        exist_obj = await ProduceWorderCRUD(self.auth, self.db).get(no=data.no)
-        if exist_obj and exist_obj.id != id:
-            raise CustomException(msg="更新失败，单号重复")
+        if data.no:
+            exist_obj = await ProduceWorderCRUD(self.auth, self.db).get(no=data.no)
+            if exist_obj and exist_obj.id != id:
+                raise CustomException(msg="更新失败，单号重复")
+
+        # 状态修改为 "4"（已完成）时，同时将实际时间设置为后端服务器当前时间
+        if str(data.status) == "4":
+            data.real_end_time = datetime.now()
 
         obj = await ProduceWorderCRUD(self.auth, self.db).update(id=id, data=data)
         return await self.detail(id)

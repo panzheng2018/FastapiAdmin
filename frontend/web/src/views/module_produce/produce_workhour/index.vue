@@ -1024,6 +1024,27 @@ async function handleCrudImportUpload(formData: FormData) {
 
   .hover-btn {
     margin-right: 0 !important;
+    width: 32px !important;
+    height: 32px !important;
+    min-width: 32px !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+
+    // 第1个（详情）与第3个（删除）图标为 16px
+    .fa-svg-icon {
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+    }
+  }
+
+  // 第2个（编辑）图标为 18px
+  span:nth-child(2) .hover-btn .fa-svg-icon {
+    font-size: 18px !important;
+    width: 18px !important;
+    height: 18px !important;
   }
 }
 
