@@ -23,9 +23,9 @@ class ProduceWorderModel(ModelMy):
     plan_count: Mapped[int] = mapped_column(Integer, nullable=False, comment='数量')
     real_count: Mapped[int | None] = mapped_column(Integer, nullable=True, default=None, comment='实际数量')
     plan_end_time: Mapped[datetime] = mapped_column(DateTime, nullable=False, comment='完工时间')
-    real_end_time: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, comment='实际完工时间')
+    real_end_time: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, comment='实际时间')
     plan_user_id: Mapped[int] = mapped_column(ForeignKey("sys_user.id", ondelete="RESTRICT", onupdate="CASCADE"), nullable=False, comment='执行用户')
-    real_user_id: Mapped[int | None] = mapped_column(ForeignKey("sys_user.id", ondelete="RESTRICT", onupdate="CASCADE"), nullable=True, comment='实际执行用户')
+    real_user_id: Mapped[int | None] = mapped_column(ForeignKey("sys_user.id", ondelete="RESTRICT", onupdate="CASCADE"), nullable=True, comment='实际用户')
 
     component: Mapped["ProduceComponentModel | None"] = relationship("ProduceComponentModel", foreign_keys=[component_id])
     craft: Mapped["ProduceCraftModel | None"] = relationship("ProduceCraftModel", foreign_keys=[craft_id])

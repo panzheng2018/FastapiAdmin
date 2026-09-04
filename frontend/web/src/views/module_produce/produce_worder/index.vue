@@ -501,7 +501,7 @@ const {
       { prop: "plan_count", label: "数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
       { prop: "plan_end_time", label: "完工时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "real_end_time", label: "实际完工时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      { prop: "real_end_time", label: "实际时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {
         prop: "plan_user_id",
         label: "执行用户",
@@ -515,7 +515,7 @@ const {
       },
       {
         prop: "real_user_id",
-        label: "实际执行用户",
+        label: "实际用户",
         minWidth: 100,
         showOverflowTooltip: true,
         headerAlign: "center",
@@ -609,8 +609,9 @@ const detailItems: import("@/components/display/fa-descriptions/index.vue").Desc
   { label: "工时", prop: "man_hour" },
   { label: "数量", prop: "plan_count" },
   { label: "完工时间", prop: "plan_end_time" },
+  { label: "实际时间", prop: "real_end_time" },
   { label: "执行用户", prop: "plan_user_name" },
-  { label: "实际执行用户", prop: "real_user_name" },
+  { label: "实际用户", prop: "real_user_name" },
   { label: "状态", prop: "status", tag: { map: { "0": { type: "info", text: "待生产" }, "1": { type: "primary", text: "生产中" }, "2": { type: "success", text: "已完成" }, "3": { type: "danger", text: "已取消" }, "4": { type: "warning", text: "已暂停" } } } },
   { label: "备注/描述", prop: "description" },
   { label: "创建时间", prop: "created_time" },
