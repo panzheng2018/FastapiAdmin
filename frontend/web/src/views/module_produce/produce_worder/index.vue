@@ -231,18 +231,20 @@
             </ElSelect>
           </template>
 
-          <!-- 5. 执行用户：下拉菜单（从 sys_user 取人名） -->
+          <!-- 5. 执行用户：下拉菜单（根据选中工艺的岗位ID动态过滤，未选工艺时显示为空） -->
           <template #plan_user_id>
             <ElSelect
               v-model="formData.plan_user_id"
-              placeholder="请选择执行用户"
+              :placeholder="!formData.craft_id ? '请先选择工艺' : (targetPositionName ? `请选择${targetPositionName}` : '请选择执行用户')"
+              :disabled="!formData.craft_id"
               filterable
               clearable
               :loading="userLoading"
               class="w-full custom-input-container"
+              :no-data-text="!formData.craft_id ? '请先选择工艺' : (targetPositionId ? '该岗位暂无配置人员' : '无可选用户')"
             >
               <ElOption
-                v-for="u in userList"
+                v-for="u in filteredPlanUserList"
                 :key="u.id"
                 :label="u.name || u.username"
                 :value="u.id!"
@@ -656,6 +658,75 @@ const rootCraftList = computed(() => {
 const userList = ref<UserInfo[]>([]);
 const userLoading = ref(false);
 
+/** 当前选中的工艺对象 */
+const selectedCraft = computed(() => {
+  if (!formData.value.craft_id) return null;
+  return craftList.value.find((c) => c.id === formData.value.craft_id) ?? null;
+});
+
+/** 当前选中的工艺关联的岗位ID */
+const targetPositionId = computed(() => {
+  return selectedCraft.value?.position_id ?? null;
+});
+
+/** 当前选中的工艺关联的岗位名称 */
+const targetPositionName = computed(() => {
+  return selectedCraft.value?.position_name ?? null;
+});
+
+/** 根据工艺岗位ID过滤出的执行用户列表 */
+const filteredPlanUserList = computed(() => {
+  // 如果还没有选中工艺，则执行用户列表为空
+  if (!formData.value.craft_id) {
+    return [];
+  }
+  const posId = targetPositionId.value;
+  if (!posId) {
+    // 选了工艺但工艺未关联岗位，显示全部用户
+    return userList.value;
+  }
+  // 过滤出拥有该岗位的人员
+  const matched = userList.value.filter((u) => {
+    return Array.isArray(u.position_ids) && u.position_ids.includes(posId);
+  });
+
+  // 编辑模式下，若已选中的用户不在该岗位中，保留该用户以保证回显正常
+  if (
+    formData.value.plan_user_id &&
+    !matched.some((u) => u.id === formData.value.plan_user_id)
+  ) {
+    const current = userList.value.find((u) => u.id === formData.value.plan_user_id);
+    if (current) {
+      return [current, ...matched];
+    }
+  }
+
+  return matched;
+});
+
+// 监听工艺切换：
+// 1. 如果清空了工艺，自动清空执行用户
+// 2. 当选中的工艺改变时，如果当前执行用户不符合新工艺的岗位，自动清空执行用户
+watch(
+  () => formData.value.craft_id,
+  (newCraftId, oldCraftId) => {
+    if (!newCraftId) {
+      formData.value.plan_user_id = undefined;
+      return;
+    }
+    if (newCraftId !== oldCraftId && formData.value.plan_user_id) {
+      const posId = targetPositionId.value;
+      if (posId) {
+        const currentUser = userList.value.find((u) => u.id === formData.value.plan_user_id);
+        const hasPosition = currentUser?.position_ids?.includes(posId);
+        if (!hasPosition) {
+          formData.value.plan_user_id = undefined;
+        }
+      }
+    }
+  }
+);
+
 let isGenerating = false;
 
 async function handleGenerateNo() {
@@ -777,7 +848,7 @@ async function handleProjectChange(val?: number) {
 async function loadCrafts() {
   craftLoading.value = true;
   try {
-    const res = await ProduceCraftAPI.getProduceCraftList({ page_no: 1, page_size: 100 });
+    const res = await ProduceCraftAPI.getProduceCraftList({ page_no: 1, page_size: 1000 });
     craftList.value = res.data.data?.items ?? [];
   } catch (err) {
     if (import.meta.env.DEV) console.error("加载工艺选项失败:", err);
@@ -789,7 +860,7 @@ async function loadCrafts() {
 async function loadUsers() {
   userLoading.value = true;
   try {
-    const res = await UserAPI.listUser({ page_no: 1, page_size: 100 });
+    const res = await UserAPI.listUser({ page_no: 1, page_size: 1000 });
     userList.value = res.data.data?.items ?? [];
   } catch (err) {
     if (import.meta.env.DEV) console.error("加载用户列表失败:", err);
