@@ -3,11 +3,13 @@
 from typing import Any
 
 from fastapi import UploadFile
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.base_schema import AuthSchema, BatchSetAvailable, PageResultSchema
 from app.core.exceptions import CustomException
 from app.core.logger import logger
+from app.plugin.module_produce.produce_project.model import ProduceProjectModel
 from app.utils.common_util import search_to_dict
 from app.utils.excel_util import ExcelUtil
 
@@ -28,18 +30,38 @@ class ProduceComponentService:
         self.db = db
 
     async def detail(self, id: int) -> ProduceComponentOutSchema:
-        obj = await ProduceComponentCRUD(self.auth, self.db).get(id=id)
+        obj = await ProduceComponentCRUD(self.auth, self.db).get(id=id, preload=["project"])
         if not obj:
             raise CustomException(msg="该数据不存在")
-        return ProduceComponentOutSchema.model_validate(obj)
+        result = ProduceComponentOutSchema.model_validate(obj)
+        if getattr(obj, "project", None):
+            result.project_name = obj.project.name
+        return result
 
     async def get_list(
         self,
         search: ProduceComponentQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> list[ProduceComponentOutSchema]:
-        obj_list = await ProduceComponentCRUD(self.auth, self.db).get_list(search=search_to_dict(search), order_by=order_by)
-        return [ProduceComponentOutSchema.model_validate(obj) for obj in obj_list]
+        search_dict = search_to_dict(search)
+        if search and search.project_name:
+            search_dict.pop("project_name", None)
+            matching_projects = (await self.db.execute(
+                select(ProduceProjectModel.id).where(ProduceProjectModel.name.like(f"%{search.project_name}%"))
+            )).scalars().all()
+            search_dict["project_id"] = ("in", matching_projects)
+        obj_list = await ProduceComponentCRUD(self.auth, self.db).get_list(
+            search=search_dict,
+            order_by=order_by,
+            preload=["project"],
+        )
+        result = []
+        for obj in obj_list:
+            item = ProduceComponentOutSchema.model_validate(obj)
+            if getattr(obj, "project", None):
+                item.project_name = obj.project.name
+            result.append(item)
+        return result
 
     async def page(
         self,
@@ -49,38 +71,59 @@ class ProduceComponentService:
         order_by: list[dict[str, str]] | None = None,
     ) -> PageResultSchema[ProduceComponentOutSchema]:
         offset = (page_no - 1) * page_size
-        return await ProduceComponentCRUD(self.auth, self.db).page(
+        search_dict = search_to_dict(search, {})
+        if search and search.project_name:
+            search_dict.pop("project_name", None)
+            matching_projects = (await self.db.execute(
+                select(ProduceProjectModel.id).where(ProduceProjectModel.name.like(f"%{search.project_name}%"))
+            )).scalars().all()
+            search_dict["project_id"] = ("in", matching_projects)
+        page_result = await ProduceComponentCRUD(self.auth, self.db).page(
             offset=offset,
             limit=page_size,
             order_by=order_by or [{"id": "asc"}],
-            search=search_to_dict(search, {}),
-            out_schema=ProduceComponentOutSchema,
+            search=search_dict,
+            preload=["project"],
         )
+        items: list[ProduceComponentOutSchema] = []
+        for obj in page_result.items:
+            item = ProduceComponentOutSchema.model_validate(obj)
+            if getattr(obj, "project", None):
+                item.project_name = obj.project.name
+            items.append(item)
+        page_result.items = items
+        return page_result
 
     async def create(self, data: ProduceComponentCreateSchema) -> ProduceComponentOutSchema:
-        obj = await ProduceComponentCRUD(self.auth, self.db).get(project_id=data.project_id)
-        if obj:
-            raise CustomException(msg="创建失败，所属项目id已存在")
-        obj = await ProduceComponentCRUD(self.auth, self.db).get(name=data.name)
-        if obj:
-            raise CustomException(msg="创建失败，部件名称已存在")
+        exist_name = await ProduceComponentCRUD(self.auth, self.db).get(name=data.name, project_id=data.project_id)
+        if exist_name:
+            raise CustomException(msg="创建失败，该项目下部件名称已存在")
         obj = await ProduceComponentCRUD(self.auth, self.db).create(data=data)
-        return ProduceComponentOutSchema.model_validate(obj)
+        result = ProduceComponentOutSchema.model_validate(obj)
+        project = await self.db.get(ProduceProjectModel, data.project_id)
+        if project:
+            result.project_name = project.name
+        return result
 
     async def update(self, id: int, data: ProduceComponentUpdateSchema) -> ProduceComponentOutSchema:
         obj = await ProduceComponentCRUD(self.auth, self.db).get(id=id)
         if not obj:
             raise CustomException(msg="更新失败，该数据不存在")
 
-        exist_obj = await ProduceComponentCRUD(self.auth, self.db).get(project_id=data.project_id)
-        if exist_obj and exist_obj.id != id:
-            raise CustomException(msg="更新失败，所属项目id重复")
-        exist_obj = await ProduceComponentCRUD(self.auth, self.db).get(name=data.name)
-        if exist_obj and exist_obj.id != id:
-            raise CustomException(msg="更新失败，部件名称重复")
+        target_project_id = data.project_id or obj.project_id
+        target_name = data.name or obj.name
+        if target_name and target_project_id:
+            exist_name = await ProduceComponentCRUD(self.auth, self.db).get(name=target_name, project_id=target_project_id)
+            if exist_name and exist_name.id != id:
+                raise CustomException(msg="更新失败，该项目下部件名称重复")
 
         obj = await ProduceComponentCRUD(self.auth, self.db).update(id=id, data=data)
-        return ProduceComponentOutSchema.model_validate(obj)
+        result = ProduceComponentOutSchema.model_validate(obj)
+        if target_project_id:
+            project = await self.db.get(ProduceProjectModel, target_project_id)
+            if project:
+                result.project_name = project.name
+        return result
 
     async def delete(self, ids: list[int]) -> None:
         if not ids:

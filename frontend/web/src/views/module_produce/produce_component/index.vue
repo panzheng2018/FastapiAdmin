@@ -227,6 +227,7 @@ const createInitialFormData = (): ProduceComponentForm => ({
 
 type ProduceComponentSearchFormParams = {
   project_id?: string;
+  project_name?: string;
   name?: string;
   code?: string;
   count?: string;
@@ -236,6 +237,7 @@ type ProduceComponentSearchFormParams = {
 
 const searchForm = ref<ProduceComponentSearchFormParams>({
   project_id: undefined,
+  project_name: undefined,
   name: undefined,
   code: undefined,
   count: undefined,
@@ -257,7 +259,7 @@ const searchBarRules: Record<string, unknown> = {};
 const businessSearchItems = computed(() => [
   {
     label: "所属项目",
-    key: "project_id",
+    key: "project_name",
     type: "input",
     placeholder: "请输入所属项目",
     clearable: true,
@@ -343,7 +345,14 @@ const {
     columnsFactory: (): ColumnOption<ProduceComponentTable>[] => [
       { type: "globalIndex", width: 56, label: "序号", align: "center", headerAlign: "center" },
       { type: "selection", width: 48, fixed: "left", align: "center", headerAlign: "center" },
-      { prop: "project_id", label: "所属项目", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
+      {
+        prop: "project_name",
+        label: "所属项目",
+        minWidth: 120,
+        showOverflowTooltip: true,
+        headerAlign: "center",
+        formatter: (row: ProduceComponentTable) => row.project_name ?? (row.project_id ? String(row.project_id) : "—"),
+      },
       { prop: "name", label: "部件名称", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "code", label: "部件编码", minWidth: 70, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "count", label: "数量", minWidth: 50, showOverflowTooltip: true, headerAlign: "center" },
@@ -426,7 +435,7 @@ const { dialogVisible } = useCrudDialog();
 const detailFormData = ref<ProduceComponentTable>({});
 
 const detailItems: import("@/components/display/fa-descriptions/index.vue").DescriptionsItem[] = [
-  { label: "所属项目", prop: "project_id" },
+  { label: "所属项目", prop: "project_name" },
   { label: "部件名称", prop: "name" },
   { label: "部件编码", prop: "code" },
   { label: "数量", prop: "count" },
@@ -570,6 +579,7 @@ const handleSearch = async (params: ProduceComponentSearchFormParams) => {
   await searchBarRef.value?.validate();
   replaceSearchParams({
     project_id: params.project_id,
+    project_name: params.project_name,
     name: params.name,
     code: params.code,
     count: params.count,
@@ -592,6 +602,7 @@ const handleSearch = async (params: ProduceComponentSearchFormParams) => {
 const onResetSearch = async () => {
   searchForm.value = {
     project_id: undefined,
+    project_name: undefined,
     name: undefined,
     code: undefined,
     count: undefined,

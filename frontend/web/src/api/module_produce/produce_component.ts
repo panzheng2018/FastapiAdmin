@@ -90,6 +90,7 @@ export default ProduceComponentAPI;
 /** 列表查询参数 */
 export interface ProduceComponentPageQuery extends PageQuery, UserByQueryParams {
   project_id?: number;
+  project_name?: string;
   name?: string;
   code?: string;
   count?: number;
@@ -100,6 +101,7 @@ export interface ProduceComponentPageQuery extends PageQuery, UserByQueryParams 
 /** 列表展示项 */
 export interface ProduceComponentTable extends BaseType {
   project_id?: number;
+  project_name?: string;
   name?: string;
   code?: string;
   count?: number;

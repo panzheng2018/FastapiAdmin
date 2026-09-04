@@ -36,12 +36,14 @@ class ProduceComponentOutSchema(ProduceComponentCreateSchema, BaseSchema, UserBy
     部件管理响应模型
     """
     model_config = ConfigDict(from_attributes=True)
+    project_name: str | None = Field(default=None, description="所属项目名称")
 
 
 class ProduceComponentQueryParam(BaseQueryParam, UserByQueryParam):
     """部件管理查询参数"""
 
     project_id: int | None = Field(None, description="所属项目id", json_schema_extra={"q": "eq"})
+    project_name: str | None = Field(None, description="所属项目名称")
     name: str | None = Field(None, description="部件名称", json_schema_extra={"q": "like"})
     code: str | None = Field(None, description="部件编码", json_schema_extra={"q": "like"})
     count: int | None = Field(None, description="数量", json_schema_extra={"q": "eq"})

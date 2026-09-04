@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import ForeignKey, Integer, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.base_model import ModelMy
+from app.plugin.module_produce.produce_project.model import ProduceProjectModel
 
 
 class ProduceComponentModel(ModelMy):
@@ -22,5 +23,11 @@ class ProduceComponentModel(ModelMy):
     code: Mapped[str | None] = mapped_column(String(64), nullable=True, comment='部件编码')
     count: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='数量')
     tmass: Mapped[int | None] = mapped_column(Integer, nullable=True, comment='总重')
+
+    project: Mapped["ProduceProjectModel | None"] = relationship(
+        "ProduceProjectModel",
+        foreign_keys=[project_id],
+    )
+
 
 
