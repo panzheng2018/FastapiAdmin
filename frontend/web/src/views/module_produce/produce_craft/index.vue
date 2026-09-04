@@ -93,6 +93,38 @@
           :show-submit="false"
           class="crud-dialog-art-form"
         >
+          <template #parent_id>
+            <ElSelect
+              v-model="formData.parent_id"
+              placeholder="请选择父工艺（顶级工艺留空）"
+              clearable
+              filterable
+              class="w-full"
+            >
+              <ElOption
+                v-for="item in parentCraftOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </ElSelect>
+          </template>
+          <template #position_id>
+            <ElSelect
+              v-model="formData.position_id"
+              placeholder="请选择关联岗位"
+              clearable
+              filterable
+              class="w-full"
+            >
+              <ElOption
+                v-for="item in positionOptions"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value"
+              />
+            </ElSelect>
+          </template>
           <template #status>
             <div class="inline-flex items-center gap-2">
               <ElSwitch
@@ -150,6 +182,7 @@ import ProduceCraftAPI, {
   type ProduceCraftPageQuery,
   type ProduceCraftTable,
 } from "@/api/module_produce/produce_craft";
+import PositionAPI from "@/api/module_system/position";
 
 defineOptions({
   name: "ProduceCraft",
@@ -163,9 +196,68 @@ const STATUS_OPTIONS = [
   { label: "停用", value: "1" },
 ] as const;
 
+const positionOptions = ref<{ label: string; value: number }[]>([]);
+const positionMap = computed(() => {
+  const map: Record<number, string> = {};
+  for (const item of positionOptions.value) {
+    map[item.value] = item.label;
+  }
+  return map;
+});
+
+const loadPositionOptions = async () => {
+  try {
+    const res = await PositionAPI.getPositionOptions();
+    if (res.data && Array.isArray(res.data)) {
+      positionOptions.value = res.data.map((item: any) => ({
+        label: item.label ?? item.name,
+        value: item.value ?? item.id,
+      }));
+    }
+  } catch (err) {
+    console.error("加载岗位下拉选项失败:", err);
+  }
+};
+
+const craftList = ref<ProduceCraftTable[]>([]);
+const craftMap = computed(() => {
+  const map: Record<number, string> = {};
+  for (const item of craftList.value) {
+    if (item.id && item.name) {
+      map[item.id] = item.name;
+    }
+  }
+  return map;
+});
+
+const parentCraftOptions = computed(() => {
+  return craftList.value
+    .filter((item) => !item.parent_id)
+    .map((item) => ({
+      label: item.name!,
+      value: item.id!,
+    }));
+});
+
+const loadCraftOptions = async () => {
+  try {
+    const res = await ProduceCraftAPI.getProduceCraftList({ page_no: 1, page_size: 1000 });
+    const records = (res.data as any)?.data?.items || (res.data as any)?.items || [];
+    craftList.value = records;
+  } catch (err) {
+    console.error("加载工艺列表失败:", err);
+  }
+};
+
+onMounted(() => {
+  loadPositionOptions();
+  loadCraftOptions();
+});
+
 const createInitialFormData = (): ProduceCraftForm => ({
   parent_id: undefined,
   name: undefined,
+  position_id: undefined,
   status: "0",
   description: undefined,
 });
@@ -173,12 +265,14 @@ const createInitialFormData = (): ProduceCraftForm => ({
 type ProduceCraftSearchFormParams = {
   parent_id?: string;
   name?: string;
+  position_id?: number | string;
   status?: string;
 } & AuditSearchFormParams;
 
 const searchForm = ref<ProduceCraftSearchFormParams>({
   parent_id: undefined,
   name: undefined,
+  position_id: undefined,
   status: undefined,
   created_id: undefined,
   updated_id: undefined,
@@ -195,11 +289,15 @@ const searchBarRules: Record<string, unknown> = {};
 /** 业务搜索项（审计四字段由 FaSearchBar 的 includeAudit 属性追加） */
 const businessSearchItems = computed(() => [
   {
-    label: "父工艺ID",
+    label: "父工艺",
     key: "parent_id",
-    type: "input",
-    placeholder: "请输入父工艺ID",
-    clearable: true,
+    type: "select",
+    props: {
+      placeholder: "请选择父工艺",
+      options: parentCraftOptions.value,
+      clearable: true,
+      filterable: true,
+    },
     span: 6,
   },
   {
@@ -208,6 +306,18 @@ const businessSearchItems = computed(() => [
     type: "input",
     placeholder: "请输入工艺名称",
     clearable: true,
+    span: 6,
+  },
+  {
+    label: "关联岗位",
+    key: "position_id",
+    type: "select",
+    props: {
+      placeholder: "请选择岗位",
+      options: positionOptions.value,
+      clearable: true,
+      filterable: true,
+    },
     span: 6,
   },
   {
@@ -258,8 +368,29 @@ const {
     columnsFactory: (): ColumnOption<ProduceCraftTable>[] => [
       { type: "globalIndex", width: 56, label: "序号", align: "center", headerAlign: "center" },
       { type: "selection", width: 48, fixed: "left", align: "center", headerAlign: "center" },
-      { prop: "parent_id", label: "父工艺ID", minWidth: 80, showOverflowTooltip: true, align: "center" },
+      {
+        prop: "parent_id",
+        label: "父工艺",
+        minWidth: 100,
+        showOverflowTooltip: true,
+        align: "center",
+        headerAlign: "center",
+        formatter: (row: ProduceCraftTable) => {
+          return row.parent_name || (row.parent_id ? craftMap.value[row.parent_id] : null) || "—";
+        },
+      },
       { prop: "name", label: "工艺名称", minWidth: 120, showOverflowTooltip: true, align: "center" },
+      {
+        prop: "position_name",
+        label: "关联岗位",
+        minWidth: 120,
+        showOverflowTooltip: true,
+        align: "center",
+        headerAlign: "center",
+        formatter: (row: ProduceCraftTable) => {
+          return row.position_name || (row.position_id ? positionMap.value[row.position_id] : null) || "—";
+        },
+      },
       {
         prop: "status",
         label: "状态",
@@ -338,8 +469,15 @@ const { dialogVisible } = useCrudDialog();
 const detailFormData = ref<ProduceCraftTable>({});
 
 const detailItems: import("@/components/display/fa-descriptions/index.vue").DescriptionsItem[] = [
-  { label: "父工艺ID", prop: "parent_id" },
+  {
+    label: "父工艺",
+    prop: "parent_name",
+    formatter: (data: ProduceCraftTable) => {
+      return data.parent_name || (data.parent_id ? craftMap.value[data.parent_id] : null) || "—";
+    },
+  },
   { label: "工艺名称", prop: "name" },
+  { label: "关联岗位", prop: "position_name" },
   { label: "状态", prop: "status", tag: { map: { "0": { type: "success", text: "启用" }, "1": { type: "danger", text: "禁用" } } } },
   { label: "备注/描述", prop: "description" },
   { label: "创建时间", prop: "created_time" },
@@ -351,8 +489,9 @@ const detailItems: import("@/components/display/fa-descriptions/index.vue").Desc
 const formData = ref<ProduceCraftForm>(createInitialFormData());
 
 const rules = reactive({
-  parent_id: [{ required: false, message: "请填写父工艺ID", trigger: "blur" }],
+  parent_id: [{ required: false, message: "请选择父工艺", trigger: "change" }],
   name: [{ required: true, message: "请填写工艺名称", trigger: "blur" }],
+  position_id: [{ required: false, message: "请选择关联岗位", trigger: "change" }],
   status: [{ required: true, message: "请填写是否启用(0:启用 1:禁用)", trigger: "blur" }],
   description: [{ required: false, message: "请填写备注/描述", trigger: "blur" }],
 });
@@ -360,15 +499,13 @@ const rules = reactive({
 const dialogFormItems: FormItem[] = [
   {
     key: "parent_id",
-    label: "父工艺ID",
-    type: "number",
-    props: {
-      placeholder: "请输入父工艺ID",
-      class: "w-full",
-      style: { width: "100%" },
-    },
+    label: "父工艺",
   },
   { key: "name", label: "工艺名称", type: "input", props: { placeholder: "请输入工艺名称" } },
+  {
+    key: "position_id",
+    label: "关联岗位",
+  },
   {
     key: "status",
     label: "状　　态",
@@ -404,9 +541,11 @@ const crud = useCrudForm<ProduceCraftForm>({
   detailFormData,
   onCreateSuccess: async () => {
     await refreshCreate();
+    await loadCraftOptions();
   },
   onUpdateSuccess: async () => {
     await refreshUpdate();
+    await loadCraftOptions();
   },
 });
 
@@ -419,6 +558,7 @@ const handleSearch = async (params: ProduceCraftSearchFormParams) => {
   replaceSearchParams({
     parent_id: params.parent_id,
     name: params.name,
+    position_id: params.position_id,
     status: params.status,
     created_id: params.created_id ?? undefined,
     updated_id: params.updated_id ?? undefined,
@@ -438,6 +578,7 @@ const onResetSearch = async () => {
   searchForm.value = {
     parent_id: undefined,
     name: undefined,
+    position_id: undefined,
     status: undefined,
     created_id: undefined,
     updated_id: undefined,

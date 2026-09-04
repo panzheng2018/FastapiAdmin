@@ -64,6 +64,7 @@ DROP TABLE IF EXISTS `produce_craft`;
 CREATE TABLE `produce_craft` (
   `parent_id` int DEFAULT NULL COMMENT '父工艺ID',
   `name` varchar(255) NOT NULL COMMENT '工艺名称',
+  `position_id` int DEFAULT NULL COMMENT '关联岗位ID',
 
   `id` int NOT NULL AUTO_INCREMENT COMMENT '工艺ID',
   `uuid` varchar(64) NOT NULL DEFAULT (UUID()) COMMENT 'UUID全局唯一标识',
@@ -77,28 +78,30 @@ CREATE TABLE `produce_craft` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_name` (`name`),
   KEY `ix_produce_craft_parent_id` (`parent_id`),
+  KEY `ix_produce_craft_position_id` (`position_id`),
   CONSTRAINT `fk_produce_craft_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `produce_craft` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT `fk_produce_craft_position_id` FOREIGN KEY (`position_id`) REFERENCES `sys_position` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_produce_craft_created_id` FOREIGN KEY (`created_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE,
   CONSTRAINT `fk_produce_craft_updated_id` FOREIGN KEY (`updated_id`) REFERENCES `sys_user` (`id`) ON DELETE RESTRICT ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='工艺表';
 
 -- 插入主工艺
-INSERT INTO produce_craft (id, parent_id, name, created_id, updated_id) VALUES 
-(1, NULL, '下料', 1, 1),
-(2, NULL, '铆焊', 1, 1),
-(3, NULL, '机加', 1, 1),
-(4, NULL, '喷漆', 1, 1),
-(5, NULL, '装配', 1, 1),
-(6, 3, '车削', 1, 1),
-(7, 3, '铣削', 1, 1),
-(8, 3, '钻削', 1, 1),
-(9, 3, '镗削', 1, 1),
-(10, 3, '刨削', 1, 1),
-(11, 1, '板材', 1, 1),
-(12, 1, '型材', 1, 1),
-(13, 4, '打磨', 1, 1),
-(14, 4, '底漆', 1, 1),
-(15, 4, '面漆', 1, 1);
+INSERT INTO produce_craft (id, parent_id, name, position_id, created_id, updated_id) VALUES 
+(1, NULL, '下料', 4, 1, 1),
+(2, NULL, '铆焊', 5, 1, 1),
+(3, NULL, '机加', 6, 1, 1),
+(4, NULL, '喷漆', 7, 1, 1),
+(5, NULL, '装配', 8, 1, 1),
+(6, 3, '车削', 6, 1, 1),
+(7, 3, '铣削', 6, 1, 1),
+(8, 3, '钻削', 6, 1, 1),
+(9, 3, '镗削', 6, 1, 1),
+(10, 3, '刨削', 6, 1, 1),
+(11, 1, '板材', 4, 1, 1),
+(12, 1, '型材', 4, 1, 1),
+(13, 4, '打磨', 7, 1, 1),
+(14, 4, '底漆', 7, 1, 1),
+(15, 4, '面漆', 7, 1, 1);
 
 -- =============================================
 -- 四、生产工单表

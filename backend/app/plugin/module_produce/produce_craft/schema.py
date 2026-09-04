@@ -11,6 +11,7 @@ class ProduceCraftCreateSchema(BaseModel):
     """
     parent_id: int | None = Field(default=None, description='父工艺ID')
     name: str = Field(default=..., description='工艺名称')
+    position_id: int | None = Field(default=None, description='关联岗位ID')
     status: str = Field(default="0", description='是否启用(0:启用 1:禁用)')
     description: str | None = Field(default=None, description='备注/描述')
 
@@ -21,6 +22,7 @@ class ProduceCraftUpdateSchema(BaseModel):
     """
     parent_id: int | None = Field(default=None, description='父工艺ID')
     name: str | None = Field(default=None, description='工艺名称')
+    position_id: int | None = Field(default=None, description='关联岗位ID')
     status: str | None = Field(default=None, description='是否启用(0:启用 1:禁用)')
     description: str | None = Field(default=None, description='备注/描述')
 
@@ -30,6 +32,8 @@ class ProduceCraftOutSchema(ProduceCraftCreateSchema, BaseSchema, UserBySchema):
     工艺管理响应模型
     """
     model_config = ConfigDict(from_attributes=True)
+    parent_name: str | None = Field(default=None, description="父工艺名称")
+    position_name: str | None = Field(default=None, description="岗位名称")
 
 
 class ProduceCraftQueryParam(BaseQueryParam, UserByQueryParam):
@@ -37,4 +41,5 @@ class ProduceCraftQueryParam(BaseQueryParam, UserByQueryParam):
 
     parent_id: int | None = Field(None, description="父工艺ID", json_schema_extra={"q": "eq"})
     name: str | None = Field(None, description="工艺名称", json_schema_extra={"q": "like"})
+    position_id: int | None = Field(None, description="关联岗位ID", json_schema_extra={"q": "eq"})
     status: str | None = Field(None, description="是否启用(0:启用 1:禁用)", json_schema_extra={"q": "like"})

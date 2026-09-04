@@ -27,19 +27,30 @@ class ProduceCraftService:
         self.auth = auth
         self.db = db
 
+    @staticmethod
+    def _populate_relations(item: ProduceCraftOutSchema, obj: Any) -> ProduceCraftOutSchema:
+        if getattr(obj, "position", None):
+            item.position_name = obj.position.name
+        if getattr(obj, "parent", None):
+            item.parent_name = obj.parent.name
+        return item
+
     async def detail(self, id: int) -> ProduceCraftOutSchema:
-        obj = await ProduceCraftCRUD(self.auth, self.db).get(id=id)
+        obj = await ProduceCraftCRUD(self.auth, self.db).get(id=id, preload=["position", "parent"])
         if not obj:
             raise CustomException(msg="该数据不存在")
-        return ProduceCraftOutSchema.model_validate(obj)
+        item = ProduceCraftOutSchema.model_validate(obj)
+        return self._populate_relations(item, obj)
 
     async def get_list(
         self,
         search: ProduceCraftQueryParam | None = None,
         order_by: list[dict[str, str]] | None = None,
     ) -> list[ProduceCraftOutSchema]:
-        obj_list = await ProduceCraftCRUD(self.auth, self.db).get_list(search=search_to_dict(search), order_by=order_by)
-        return [ProduceCraftOutSchema.model_validate(obj) for obj in obj_list]
+        obj_list = await ProduceCraftCRUD(self.auth, self.db).get_list(
+            search=search_to_dict(search), order_by=order_by, preload=["position", "parent"]
+        )
+        return [self._populate_relations(ProduceCraftOutSchema.model_validate(obj), obj) for obj in obj_list]
 
     async def page(
         self,
@@ -49,20 +60,26 @@ class ProduceCraftService:
         order_by: list[dict[str, str]] | None = None,
     ) -> PageResultSchema[ProduceCraftOutSchema]:
         offset = (page_no - 1) * page_size
-        return await ProduceCraftCRUD(self.auth, self.db).page(
+        page_result = await ProduceCraftCRUD(self.auth, self.db).page(
             offset=offset,
             limit=page_size,
             order_by=order_by or [{"id": "asc"}],
             search=search_to_dict(search, {}),
-            out_schema=ProduceCraftOutSchema,
+            preload=["position", "parent"],
         )
+        items: list[ProduceCraftOutSchema] = []
+        for obj in page_result.items:
+            item = ProduceCraftOutSchema.model_validate(obj)
+            items.append(self._populate_relations(item, obj))
+        page_result.items = items
+        return page_result
 
     async def create(self, data: ProduceCraftCreateSchema) -> ProduceCraftOutSchema:
         obj = await ProduceCraftCRUD(self.auth, self.db).get(name=data.name)
         if obj:
             raise CustomException(msg="创建失败，工艺名称已存在")
         obj = await ProduceCraftCRUD(self.auth, self.db).create(data=data)
-        return ProduceCraftOutSchema.model_validate(obj)
+        return await self.detail(obj.id)
 
     async def update(self, id: int, data: ProduceCraftUpdateSchema) -> ProduceCraftOutSchema:
         obj = await ProduceCraftCRUD(self.auth, self.db).get(id=id)
@@ -74,7 +91,7 @@ class ProduceCraftService:
             raise CustomException(msg="更新失败，工艺名称重复")
 
         obj = await ProduceCraftCRUD(self.auth, self.db).update(id=id, data=data)
-        return ProduceCraftOutSchema.model_validate(obj)
+        return await self.detail(id)
 
     async def delete(self, ids: list[int]) -> None:
         if not ids:

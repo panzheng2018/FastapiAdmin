@@ -91,13 +91,17 @@ export default ProduceCraftAPI;
 export interface ProduceCraftPageQuery extends PageQuery, UserByQueryParams {
   parent_id?: number;
   name?: string;
+  position_id?: number;
   status?: string;
 }
 
 /** 列表展示项 */
 export interface ProduceCraftTable extends BaseType {
   parent_id?: number;
+  parent_name?: string;
   name?: string;
+  position_id?: number;
+  position_name?: string;
   status?: string;
   description?: string;
 }
@@ -106,6 +110,7 @@ export interface ProduceCraftTable extends BaseType {
 export interface ProduceCraftForm extends BaseFormType {
   parent_id?: number;
   name?: string;
+  position_id?: number;
   status?: string;
   description?: string;
 }
