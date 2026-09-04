@@ -1083,6 +1083,15 @@ async function handleCrudImportUpload(formData: FormData) {
   }
 }
 
+// 表头的高度
+:deep(.el-table__header th.el-table__cell) { padding: 7px 0 !important; }
+// 整个表格卡片的上内边距
+.fa-table-card :deep(.el-card__body) { padding-top: 10px; }
+// 表格底部到分页区控件顶部的间距
+:deep(.fa-table .pagination) { padding-top: 5px; }
+// 调整整个表格卡片的下内边距
+.fa-table-card :deep(.el-card__body) { padding-bottom: 10px; }
+
 :deep(.el-dialog__header) { padding-top: 0px !important; }
 
 :deep(.el-dialog__footer) { padding-bottom: 0px !important; }
@@ -1095,7 +1104,6 @@ async function handleCrudImportUpload(formData: FormData) {
   // 描述的输入框
   .el-form-item:has(.el-textarea) { margin-bottom: 0px !important; }
 }
-
 
 :deep(.craft-select-center) {
   // 整体外框容器：作为绝对定位的参照基准

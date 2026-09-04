@@ -541,8 +541,8 @@ const {
       },
       { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "plan_end_time", label: "完工时间", minWidth: 180, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "real_end_time", label: "实际时间", minWidth: 180, showOverflowTooltip: true, headerAlign: "center", formatter: (row: ProduceWreportTable) => row.real_end_time || "—" },
+      { prop: "plan_end_time", label: "完工时间", minWidth: 165, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "real_end_time", label: "实际时间", minWidth: 165, showOverflowTooltip: true, headerAlign: "center", formatter: (row: ProduceWreportTable) => row.real_end_time || "—" },
       {
         prop: "plan_user_id",
         label: "执行用户",
@@ -1329,6 +1329,15 @@ async function handleCrudImportUpload(formData: FormData) {
     }
   }
 }
+
+// 表头的高度
+:deep(.el-table__header th.el-table__cell) { padding: 7px 0 !important; }
+// 整个表格卡片的上内边距
+.fa-table-card :deep(.el-card__body) { padding-top: 10px; }
+// 表格底部到分页区控件顶部的间距
+:deep(.fa-table .pagination) { padding-top: 5px; }
+// 调整整个表格卡片的下内边距
+.fa-table-card :deep(.el-card__body) { padding-bottom: 10px; }
 
 :deep(.el-dialog__header) { padding-top: 0px !important; }
 
