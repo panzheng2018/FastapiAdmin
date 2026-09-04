@@ -220,13 +220,14 @@
               filterable
               clearable
               :loading="craftLoading"
-              class="w-full custom-input-container"
+              class="w-full custom-input-container craft-select-center"
             >
               <ElOption
                 v-for="item in rootCraftList"
                 :key="item.id"
                 :label="item.name"
                 :value="item.id!"
+                style="text-align: center;"
               />
             </ElSelect>
           </template>
@@ -1205,6 +1206,121 @@ async function handleCrudImportUpload(formData: FormData) {
   .el-col:has(.mb-3) { display: none; }
   // 描述的输入框
   .el-form-item:has(.el-textarea) { margin-bottom: 0px !important; }
+}
+
+:deep(.craft-select-center) {
+  // 整体外框容器：作为绝对定位的参照基准
+  .el-select__wrapper {
+    position: relative !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  // 右侧下拉箭头与清除图标：绝对定位浮于最右侧，不参与中心计算
+  .el-select__suffix {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    z-index: 2;
+  }
+
+  // 内部选区容器：占满 100% 宽度，左右居中
+  .el-select__selection {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+  }
+
+  // 选中的文本项：相对整个输入框外框满宽绝对居中
+  .el-select__selected-item {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 32px !important; // 预留右侧按钮空间，文字溢出时省略
+    box-sizing: border-box !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: none;
+
+    span {
+      display: inline-block !important;
+      text-align: center !important;
+      margin: 0 auto !important;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  // 占位提示语（“请选择工艺”）：相对整个输入框外框满宽绝对居中
+  .el-select__placeholder {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 32px !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    pointer-events: none;
+
+    span {
+      display: inline-block !important;
+      text-align: center !important;
+      margin: 0 auto !important;
+    }
+  }
+
+  // 搜索输入框与光标：满宽居中
+  .el-select__input-wrapper {
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: 0 32px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+  }
+
+  .el-select__input,
+  .el-input__inner,
+  input {
+    text-align: center !important;
+    margin: 0 auto !important;
+    width: 100% !important;
+  }
 }
 
 </style>
