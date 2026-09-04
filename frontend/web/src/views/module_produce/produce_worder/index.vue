@@ -102,7 +102,7 @@
                 clearable
                 class="flex-1"
               />
-              <ElButton type="primary" plain @click="handleGenerateNo">生成</ElButton>
+              <ElButton type="primary" plain :loading="generateLoading" @click="handleGenerateNo">生成</ElButton>
             </div>
           </template>
 
@@ -599,12 +599,35 @@ const craftLoading = ref(false);
 const userList = ref<UserInfo[]>([]);
 const userLoading = ref(false);
 
-function handleGenerateNo() {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
-  const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-  const randomStr = String(Math.floor(Math.random() * 900 + 100));
-  formData.value.no = `WO${dateStr}${randomStr}`;
+const generateLoading = ref(false);
+
+async function handleGenerateNo() {
+  generateLoading.value = true;
+  try {
+    const res = await ProduceWorderAPI.getProduceWorderList({
+      page_no: 1,
+      page_size: 1,
+      order_by: JSON.stringify([{ id: "desc" }]),
+    });
+    const items = res.data?.data?.items;
+    if (!items || items.length === 0) return;
+
+    const lastNo = items[0]?.no;
+    if (!lastNo || typeof lastNo !== "string") return;
+
+    // 贪婪模式提取字符串末尾的纯数字
+    const match = lastNo.match(/(\d+)$/);
+    if (!match || match.index === undefined) return;
+
+    const digits = match[1];
+    const prefix = lastNo.slice(0, match.index);
+    const a = (BigInt(digits) + 1n).toString().padStart(digits.length, "0");
+    formData.value.no = `${prefix}${a}`;
+  } catch {
+    // 获取失败静默退出
+  } finally {
+    generateLoading.value = false;
+  }
 }
 
 async function fetchProjectOptions(page = 1) {

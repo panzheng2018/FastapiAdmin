@@ -89,6 +89,7 @@ export default ProduceWorderAPI;
 
 /** 列表查询参数 */
 export interface ProduceWorderPageQuery extends PageQuery, UserByQueryParams {
+  order_by?: string;
   no?: string;
   component_id?: number;
   craft_id?: number;
