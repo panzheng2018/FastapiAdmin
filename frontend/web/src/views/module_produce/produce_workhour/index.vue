@@ -220,42 +220,15 @@
               filterable
               clearable
               :loading="craftLoading"
-              class="w-full custom-input-container"
+              class="w-full custom-input-container craft-select-center"
             >
               <ElOption
                 v-for="item in rootCraftList"
                 :key="item.id"
                 :label="item.name"
                 :value="item.id!"
+                style="text-align: center;"
               />
-            </ElSelect>
-          </template>
-
-          <!-- 5. 执行用户：下拉菜单（根据选中工艺的岗位ID动态过滤，未选工艺时显示为空） -->
-          <template #plan_user_id>
-            <ElSelect
-              v-model="formData.plan_user_id"
-              :placeholder="!formData.craft_id ? '请先选择工艺' : (targetPositionName ? `请选择${targetPositionName}` : '请选择执行用户')"
-              :disabled="!formData.craft_id"
-              filterable
-              clearable
-              :loading="userLoading"
-              class="w-full custom-input-container"
-              :no-data-text="!formData.craft_id ? '请先选择工艺' : (targetPositionId ? '该岗位暂无配置人员' : '无可选用户')"
-            >
-              <ElOption
-                v-for="u in filteredPlanUserList"
-                :key="u.id"
-                :label="u.name || u.username"
-                :value="u.id!"
-              >
-                <div class="flex justify-between items-center w-full">
-                  <span>{{ u.name || u.username }}</span>
-                  <span class="text-xs text-[var(--el-text-color-secondary)] ml-2">
-                    {{ u.username ? `(${u.username})` : '' }}
-                  </span>
-                </div>
-              </ElOption>
             </ElSelect>
           </template>
         </FaForm>
@@ -329,9 +302,7 @@ const createInitialFormData = (): ProduceWorkhourForm => ({
   man_hour: 0,
   plan_count: 1,
   real_count: undefined,
-  plan_end_time: undefined,
   real_end_time: undefined,
-  plan_user_id: undefined,
   real_user_id: undefined,
   status: "0",
   description: undefined,
@@ -341,11 +312,10 @@ type ProduceWorkhourSearchFormParams = {
   no?: string;
   component_id?: string;
   craft_id?: string;
+  man_hour?: string | number;
   plan_count?: string;
   real_count?: string;
-  plan_end_time?: string;
   real_end_time?: string;
-  plan_user_id?: string;
   real_user_id?: string;
   status?: string;
 } & AuditSearchFormParams;
@@ -354,11 +324,10 @@ const searchForm = ref<ProduceWorkhourSearchFormParams>({
   no: undefined,
   component_id: undefined,
   craft_id: undefined,
+  man_hour: undefined,
   plan_count: undefined,
   real_count: undefined,
-  plan_end_time: undefined,
   real_end_time: undefined,
-  plan_user_id: undefined,
   real_user_id: undefined,
   status: undefined,
   created_id: undefined,
@@ -373,7 +342,7 @@ const showSearchBar = ref(true);
 const searchBarRef = ref<{ validate: () => Promise<boolean> } | null>(null);
 const searchBarRules: Record<string, unknown> = {};
 
-/** 业务搜索项（审计四字段由 FaSearchBar 的 includeAudit 属性追加） */
+/** 业务搜索项（支持工时字段搜索） */
 const businessSearchItems = computed(() => [
   {
     label: "单号",
@@ -392,14 +361,6 @@ const businessSearchItems = computed(() => [
     span: 6,
   },
   {
-    label: "数量",
-    key: "plan_count",
-    type: "input",
-    placeholder: "请输入数量",
-    clearable: true,
-    span: 6,
-  },
-  {
     label: "工艺",
     key: "craft_id",
     type: "input",
@@ -408,22 +369,18 @@ const businessSearchItems = computed(() => [
     span: 6,
   },
   {
-    label: "完工时间",
-    key: "plan_end_time",
-    type: "date-picker",
-    props: {
-      type: "date",
-      valueFormat: "YYYY-MM-DD",
-      clearable: true,
-      placeholder: "请选择完工时间",
-    },
+    label: "工时",
+    key: "man_hour",
+    type: "input",
+    placeholder: "请输入工时",
+    clearable: true,
     span: 6,
   },
   {
-    label: "执行用户",
-    key: "plan_user_id",
+    label: "数量",
+    key: "plan_count",
     type: "input",
-    placeholder: "请输入执行用户",
+    placeholder: "请输入数量",
     clearable: true,
     span: 6,
   },
@@ -495,7 +452,7 @@ const {
       {
         prop: "craft_id",
         label: "工艺",
-        minWidth: 40,
+        minWidth: 60,
         showOverflowTooltip: true,
         align: "center",
         formatter: (row: ProduceWorkhourTable) => {
@@ -506,21 +463,9 @@ const {
           );
         },
       },
-      { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      { prop: "man_hour", label: "工时", minWidth: 60, showOverflowTooltip: true, align: "center" },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "plan_end_time", label: "完工时间", minWidth: 100, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "real_end_time", label: "实际时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      {
-        prop: "plan_user_id",
-        label: "执行用户",
-        minWidth: 60,
-        showOverflowTooltip: true,
-        align: "center",
-        formatter: (row: ProduceWorkhourTable) => {
-          const u = userList.value.find((item) => item.id === row.plan_user_id);
-          return row.plan_user_name || u?.name || u?.username || "—";
-        },
-      },
       {
         prop: "real_user_id",
         label: "实际用户",
@@ -617,9 +562,7 @@ const detailItems: import("@/components/display/fa-descriptions/index.vue").Desc
   { label: "数量", prop: "plan_count" },
   { label: "工艺", prop: "craft_name" },
   { label: "工时", prop: "man_hour" },
-  { label: "完工时间", prop: "plan_end_time" },
   { label: "实际时间", prop: "real_end_time" },
-  { label: "执行用户", prop: "plan_user_name" },
   { label: "实际用户", prop: "real_user_name" },
   { label: "状态", prop: "status", tag: { map: { "0": { type: "info", text: "待生产" }, "1": { type: "primary", text: "生产中" }, "2": { type: "success", text: "已完成" }, "3": { type: "danger", text: "已取消" }, "4": { type: "warning", text: "已暂停" } } } },
   { label: "备注/描述", prop: "description" },
@@ -656,75 +599,6 @@ const rootCraftList = computed(() => {
 const userList = ref<UserInfo[]>([]);
 const userLoading = ref(false);
 
-/** 当前选中的工艺对象 */
-const selectedCraft = computed(() => {
-  if (!formData.value.craft_id) return null;
-  return craftList.value.find((c) => c.id === formData.value.craft_id) ?? null;
-});
-
-/** 当前选中的工艺关联的岗位ID */
-const targetPositionId = computed(() => {
-  return selectedCraft.value?.position_id ?? null;
-});
-
-/** 当前选中的工艺关联的岗位名称 */
-const targetPositionName = computed(() => {
-  return selectedCraft.value?.position_name ?? null;
-});
-
-/** 根据工艺岗位ID过滤出的执行用户列表 */
-const filteredPlanUserList = computed(() => {
-  // 如果还没有选中工艺，则执行用户列表为空
-  if (!formData.value.craft_id) {
-    return [];
-  }
-  const posId = targetPositionId.value;
-  if (!posId) {
-    // 选了工艺但工艺未关联岗位，显示全部用户
-    return userList.value;
-  }
-  // 过滤出拥有该岗位的人员
-  const matched = userList.value.filter((u) => {
-    return Array.isArray(u.position_ids) && u.position_ids.includes(posId);
-  });
-
-  // 编辑模式下，若已选中的用户不在该岗位中，保留该用户以保证回显正常
-  if (
-    formData.value.plan_user_id &&
-    !matched.some((u) => u.id === formData.value.plan_user_id)
-  ) {
-    const current = userList.value.find((u) => u.id === formData.value.plan_user_id);
-    if (current) {
-      return [current, ...matched];
-    }
-  }
-
-  return matched;
-});
-
-// 监听工艺切换：
-// 1. 如果清空了工艺，自动清空执行用户
-// 2. 当选中的工艺改变时，如果当前执行用户不符合新工艺的岗位，自动清空执行用户
-watch(
-  () => formData.value.craft_id,
-  (newCraftId, oldCraftId) => {
-    if (!newCraftId) {
-      formData.value.plan_user_id = undefined;
-      return;
-    }
-    if (newCraftId !== oldCraftId && formData.value.plan_user_id) {
-      const posId = targetPositionId.value;
-      if (posId) {
-        const currentUser = userList.value.find((u) => u.id === formData.value.plan_user_id);
-        const hasPosition = currentUser?.position_ids?.includes(posId);
-        if (!hasPosition) {
-          formData.value.plan_user_id = undefined;
-        }
-      }
-    }
-  }
-);
-
 let isGenerating = false;
 
 async function handleGenerateNo() {
@@ -742,7 +616,6 @@ async function handleGenerateNo() {
     const lastNo = items[0]?.no;
     if (!lastNo || typeof lastNo !== "string") return;
 
-    // 贪婪模式提取字符串末尾的纯数字
     const match = lastNo.match(/(\d+)$/);
     if (!match || match.index === undefined) return;
 
@@ -912,21 +785,19 @@ const rules = reactive({
   no: [{ required: true, message: "请填写单号或点击生成", trigger: "blur" }],
   project_id: [{ required: true, message: "请选择所属项目", trigger: "change" }],
   component_id: [{ required: true, message: "请选择所属部件", trigger: "change" }],
-  craft_id: [{ required: true, message: "请选择工艺", trigger: "change" }],
   plan_count: [{ required: true, message: "请填写数量", trigger: "blur" }],
-  plan_end_time: [{ required: true, message: "请选择完工时间", trigger: "change" }],
-  plan_user_id: [{ required: true, message: "请选择执行用户", trigger: "change" }],
+  craft_id: [{ required: true, message: "请选择工艺", trigger: "change" }],
+  man_hour: [{ required: true, message: "请填写工时", trigger: "blur" }],
   description: [{ required: false, message: "请填写备注/描述", trigger: "blur" }],
 });
 
 const dialogFormItems: FormItem[] = [
-  { key: "no", label: "单号", type: "input" },
+  { key: "no", label: "单　　号", type: "input" },
   { key: "project_id", label: "所属项目", type: "select" },
   { key: "component_id", label: "所属部件", type: "select" },
-  { key: "craft_id", label: "工　　艺", type: "select" },
   { key: "plan_count", label: "数　　量", type: "number", props: { placeholder: "请输入数量", class: "w-full", style: { width: "100%" } } },
-  { key: "plan_end_time", label: "完工时间", type: "datetime", props: { placeholder: "请选择完工时间", valueFormat: "YYYY-MM-DD HH:mm:ss", style: "width: 100%" } },
-  { key: "plan_user_id", label: "执行用户", type: "select" },
+  { key: "craft_id", label: "工　　艺", type: "select" },
+  { key: "man_hour", label: "工　　时", type: "number", props: { placeholder: "请输入工时", class: "w-full", style: { width: "100%" }, min: 0 } },
   {
     key: "description",
     label: "描　　述",
@@ -953,13 +824,10 @@ const crud = useCrudForm<ProduceWorkhourForm>({
   detailApi: (id: number) => ProduceWorkhourAPI.getProduceWorkhourDetail(id),
   createApi: (data: ProduceWorkhourForm) => {
     const { project_id, ...payload } = data;
-    if (!payload.real_user_id && payload.plan_user_id) {
-      payload.real_user_id = payload.plan_user_id;
-    }
     if (payload.status === undefined) {
       payload.status = "0";
     }
-    if (payload.man_hour === undefined) {
+    if (payload.man_hour === undefined || payload.man_hour === null) {
       payload.man_hour = 0;
     }
     return ProduceWorkhourAPI.createProduceWorkhour(payload);
@@ -988,11 +856,10 @@ const handleSearch = async (params: ProduceWorkhourSearchFormParams) => {
     no: params.no,
     component_id: params.component_id,
     craft_id: params.craft_id,
+    man_hour: params.man_hour,
     plan_count: params.plan_count,
     real_count: params.real_count,
-    plan_end_time: params.plan_end_time,
     real_end_time: params.real_end_time,
-    plan_user_id: params.plan_user_id,
     real_user_id: params.real_user_id,
     status: params.status,
     created_id: params.created_id ?? undefined,
@@ -1014,11 +881,10 @@ const onResetSearch = async () => {
     no: undefined,
     component_id: undefined,
     craft_id: undefined,
+    man_hour: undefined,
     plan_count: undefined,
     real_count: undefined,
-    plan_end_time: undefined,
     real_end_time: undefined,
-    plan_user_id: undefined,
     real_user_id: undefined,
     status: undefined,
     created_id: undefined,
@@ -1122,7 +988,6 @@ async function runBatchStatus(value: "enable" | "disable") {
     );
     const status = value === "enable" ? 0 : 1;
     await ProduceWorkhourAPI.batchProduceWorkhour({ ids, status });
-    // 成功 / 失败提示由 axios 拦截器统一处理
     faTableRef.value?.elTableRef?.clearSelection();
     await refreshData();
   } catch {
@@ -1138,10 +1003,8 @@ async function handleCrudImportUpload(formData: FormData) {
       importVisible.value = false;
       await refreshData();
     }
-    // 非 SUCCESS 分支提示由 axios 拦截器统一处理
   } catch (error: unknown) {
     if (import.meta.env.DEV) console.error("[Import]", error);
-    /* 接口错误已由拦截器提示 */
   }
 }
 
@@ -1157,7 +1020,6 @@ async function handleCrudImportUpload(formData: FormData) {
 }
 
 :deep(.crud-dialog-art-form) {
-  // 红色星号单独对齐，未设星号的行预留星号位置；保持中文等宽对齐
   .el-form-item__label {
     position: relative;
     display: inline-flex;
@@ -1179,7 +1041,6 @@ async function handleCrudImportUpload(formData: FormData) {
     }
   }
 
-  // 表单文本与输入控件撑满
   .el-form-item__content {
     .el-input,
     .el-input-number,
@@ -1199,10 +1060,67 @@ async function handleCrudImportUpload(formData: FormData) {
 :deep(.el-dialog__header) { padding-top: 0px !important; }
 
 :deep(.crud-dialog-art-form) {
-  // 隐藏按钮空槽
   .el-col:has(.mb-3) { display: none; }
-  // 描述的输入框
   .el-form-item:has(.el-textarea) { margin-bottom: 0px !important; }
+}
+
+:deep(.craft-select-center) {
+  .el-select__wrapper {
+    position: relative !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    justify-content: center !important;
+  }
+
+  // 右侧下拉箭头与清除按钮绝对定位，脱离文档流，不占用中心计算空间
+  .el-select__suffix {
+    position: absolute !important;
+    right: 12px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+  }
+
+  .el-select__selection {
+    width: 100% !important;
+    justify-content: center !important;
+    text-align: center !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .el-select__selected-item {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+    span {
+      display: inline-block;
+      width: 100% !important;
+      text-align: center !important;
+    }
+  }
+
+  .el-select__placeholder {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+    span {
+      display: inline-block;
+      width: 100% !important;
+      text-align: center !important;
+    }
+  }
+
+  .el-select__input-wrapper {
+    width: 100% !important;
+    text-align: center !important;
+    justify-content: center !important;
+  }
+
+  .el-select__input,
+  .el-input__inner,
+  input {
+    text-align: center !important;
+  }
 }
 
 </style>

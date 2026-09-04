@@ -96,9 +96,7 @@ export interface ProduceWorkhourPageQuery extends PageQuery, UserByQueryParams {
   man_hour?: number;
   plan_count?: number;
   real_count?: number;
-  plan_end_time?: string;
   real_end_time?: string;
-  plan_user_id?: number;
   real_user_id?: number;
   status?: string;
 }
@@ -115,10 +113,7 @@ export interface ProduceWorkhourTable extends BaseType {
   man_hour?: number;
   plan_count?: number;
   real_count?: number;
-  plan_end_time?: string;
   real_end_time?: string;
-  plan_user_id?: number;
-  plan_user_name?: string;
   real_user_id?: number;
   real_user_name?: string;
   status?: string;
@@ -134,9 +129,7 @@ export interface ProduceWorkhourForm extends BaseFormType {
   man_hour?: number;
   plan_count?: number;
   real_count?: number;
-  plan_end_time?: string;
   real_end_time?: string;
-  plan_user_id?: number;
   real_user_id?: number;
   status?: string;
   description?: string;

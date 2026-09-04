@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from datetime import datetime
 from typing import Any
 
 from fastapi import UploadFile
@@ -21,7 +22,7 @@ from .schema import (
 
 
 class ProduceWorkhourService:
-    """工时管理模块服务层（复用 produce_worder 表）"""
+    """工时管理模块服务层（复用 produce_worder 表，对外移除完工时间与执行用户）"""
 
     def __init__(self, auth: AuthSchema, db: AsyncSession) -> None:
         self.auth = auth
@@ -31,8 +32,6 @@ class ProduceWorkhourService:
     def _populate_names(item: ProduceWorkhourOutSchema, obj: Any) -> ProduceWorkhourOutSchema:
         if getattr(obj, "craft", None):
             item.craft_name = obj.craft.name
-        if getattr(obj, "plan_user", None):
-            item.plan_user_name = obj.plan_user.name or obj.plan_user.username
         if getattr(obj, "real_user", None):
             item.real_user_name = obj.real_user.name or obj.real_user.username
         if getattr(obj, "component", None):
@@ -44,7 +43,7 @@ class ProduceWorkhourService:
 
     async def detail(self, id: int) -> ProduceWorkhourOutSchema:
         obj = await ProduceWorkhourCRUD(self.auth, self.db).get(
-            id=id, preload=["craft", "plan_user", "real_user", "component", "component.project"]
+            id=id, preload=["craft", "real_user", "component", "component.project"]
         )
         if not obj:
             raise CustomException(msg="该数据不存在")
@@ -59,7 +58,7 @@ class ProduceWorkhourService:
         obj_list = await ProduceWorkhourCRUD(self.auth, self.db).get_list(
             search=search_to_dict(search),
             order_by=order_by,
-            preload=["craft", "plan_user", "real_user", "component", "component.project"],
+            preload=["craft", "real_user", "component", "component.project"],
         )
         result = []
         for obj in obj_list:
@@ -80,7 +79,7 @@ class ProduceWorkhourService:
             limit=page_size,
             order_by=order_by or [{"id": "asc"}],
             search=search_to_dict(search, {}),
-            preload=["craft", "plan_user", "real_user", "component", "component.project"],
+            preload=["craft", "real_user", "component", "component.project"],
         )
         items: list[ProduceWorkhourOutSchema] = []
         for obj in page_result.items:
@@ -93,9 +92,18 @@ class ProduceWorkhourService:
         obj = await ProduceWorkhourCRUD(self.auth, self.db).get(no=data.no)
         if obj:
             raise CustomException(msg="创建失败，单号已存在")
-        if data.real_user_id is None:
-            data.real_user_id = data.plan_user_id
-        obj = await ProduceWorkhourCRUD(self.auth, self.db).create(data=data)
+
+        create_dict = data.model_dump()
+        # 底层数据库 produce_worder 表保留 plan_end_time 和 plan_user_id，设默认值保障写入
+        current_user_id = getattr(self.auth.user, "id", None) or 1
+        if not create_dict.get("plan_end_time"):
+            create_dict["plan_end_time"] = datetime.now()
+        if not create_dict.get("plan_user_id"):
+            create_dict["plan_user_id"] = current_user_id
+        if not create_dict.get("real_user_id"):
+            create_dict["real_user_id"] = current_user_id
+
+        obj = await ProduceWorkhourCRUD(self.auth, self.db).create(data=create_dict)
         return await self.detail(obj.id)
 
     async def update(self, id: int, data: ProduceWorkhourUpdateSchema) -> ProduceWorkhourOutSchema:
@@ -103,9 +111,10 @@ class ProduceWorkhourService:
         if not obj:
             raise CustomException(msg="更新失败，该数据不存在")
 
-        exist_obj = await ProduceWorkhourCRUD(self.auth, self.db).get(no=data.no)
-        if exist_obj and exist_obj.id != id:
-            raise CustomException(msg="更新失败，单号重复")
+        if data.no:
+            exist_obj = await ProduceWorkhourCRUD(self.auth, self.db).get(no=data.no)
+            if exist_obj and exist_obj.id != id:
+                raise CustomException(msg="更新失败，单号重复")
 
         obj = await ProduceWorkhourCRUD(self.auth, self.db).update(id=id, data=data)
         return await self.detail(id)
@@ -131,11 +140,9 @@ class ProduceWorkhourService:
             'component_name': '部件名称',
             'craft_name': '工艺',
             'man_hour': '工时',
-            'plan_count': '计划数量',
+            'plan_count': '数量',
             'real_count': '实际数量',
-            'plan_end_time': '计划完工时间',
             'real_end_time': '实际时间',
-            'plan_user_name': '执行用户',
             'real_user_name': '实际用户',
             'id': '工时ID',
             'status': '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停',
@@ -162,11 +169,9 @@ class ProduceWorkhourService:
             '部件id': 'component_id',
             '工艺id': 'craft_id',
             '工时': 'man_hour',
-            '计划数量': 'plan_count',
+            '数量': 'plan_count',
             '实际数量': 'real_count',
-            '计划完工时间': 'plan_end_time',
             '实际时间': 'real_end_time',
-            '计划执行用户': 'plan_user_id',
             '实际用户': 'real_user_id',
             '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停': 'status',
             '备注/描述': 'description',
@@ -194,9 +199,6 @@ class ProduceWorkhourService:
                 "craft_id",
                 "man_hour",
                 "plan_count",
-                "plan_end_time",
-                "plan_user_id",
-                "real_user_id",
                 "status",
             ]
             errors = []
@@ -209,12 +211,18 @@ class ProduceWorkhourService:
             if errors:
                 raise CustomException(msg=f"导入失败，以下行缺少必要字段：\n{'; '.join(errors)}")
 
+            current_user_id = getattr(self.auth.user, "id", None) or 1
             error_msgs = []
             success_count = 0
 
             for i, row in enumerate(mapped_rows, start=1):
                 try:
                     create_schema = ProduceWorkhourCreateSchema.model_validate(row)
+                    row_dict = create_schema.model_dump()
+                    row_dict["plan_end_time"] = datetime.now()
+                    row_dict["plan_user_id"] = current_user_id
+                    if not row_dict.get("real_user_id"):
+                        row_dict["real_user_id"] = current_user_id
 
                     exists_obj = await ProduceWorkhourCRUD(self.auth, self.db).get(no=create_schema.no)
                     if exists_obj:
@@ -225,7 +233,7 @@ class ProduceWorkhourService:
                             error_msgs.append(f"第{i}行: 单号 {create_schema.no} 已存在")
                         continue
 
-                    await ProduceWorkhourCRUD(self.auth, self.db).create(data=create_schema)
+                    await ProduceWorkhourCRUD(self.auth, self.db).create(data=row_dict)
                     success_count += 1
                 except Exception as e:
                     error_msgs.append(f"第{i}行: {e!s}")
@@ -247,11 +255,9 @@ class ProduceWorkhourService:
             '部件id',
             '工艺id',
             '工时',
-            '计划数量',
+            '数量',
             '实际数量',
-            '计划完工时间',
             '实际时间',
-            '计划执行用户',
             '实际用户',
             '状态 0=待生产 1=生产中 2=已完成 3=已取消 4=已暂停',
             '备注/描述',
