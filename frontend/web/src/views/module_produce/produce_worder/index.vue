@@ -472,13 +472,21 @@ const {
       page_size: 10,
     },
     columnsFactory: (): ColumnOption<ProduceWorderTable>[] => [
-      { type: "globalIndex", width: 56, label: "序号", align: "center", headerAlign: "center" },
+      { type: "globalIndex", width: 56, label: "序号", align: "center", headerAlign: "center", visible: false },
       { type: "selection", width: 48, fixed: "left", align: "center", headerAlign: "center" },
-      { prop: "no", label: "单号", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "no", label: "单号", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
+      {
+        prop: "project_name",
+        label: "所属项目",
+        minWidth: 120,
+        showOverflowTooltip: true,
+        headerAlign: "center",
+        formatter: (row: ProduceWorderTable) => row.project_name || "—",
+      },
       {
         prop: "component_id",
         label: "所属部件",
-        minWidth: 100,
+        minWidth: 120,
         showOverflowTooltip: true,
         headerAlign: "center",
         formatter: (row: ProduceWorderTable) => row.component_name || row.component_id || "—",
@@ -486,9 +494,9 @@ const {
       {
         prop: "craft_id",
         label: "工艺",
-        minWidth: 100,
+        minWidth: 40,
         showOverflowTooltip: true,
-        headerAlign: "center",
+        align: "center",
         formatter: (row: ProduceWorderTable) => {
           return (
             row.craft_name ||
@@ -498,16 +506,16 @@ const {
         },
       },
       { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "plan_count", label: "数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "plan_count", label: "数量", minWidth: 40, showOverflowTooltip: true, align: "center" },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "plan_end_time", label: "完工时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "plan_end_time", label: "完工时间", minWidth: 100, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "real_end_time", label: "实际时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {
         prop: "plan_user_id",
         label: "执行用户",
-        minWidth: 100,
+        minWidth: 60,
         showOverflowTooltip: true,
-        headerAlign: "center",
+        align: "center",
         formatter: (row: ProduceWorderTable) => {
           const u = userList.value.find((item) => item.id === row.plan_user_id);
           return row.plan_user_name || u?.name || u?.username || "—";
@@ -528,7 +536,7 @@ const {
       {
         prop: "status",
         label: "状态",
-        width: 88,
+        width: 70,
         align: "center",
         headerAlign: "center",
         formatter: (row: ProduceWorderTable) => {
@@ -540,7 +548,7 @@ const {
           );
         },
       },
-      { prop: "description", label: "备注/描述", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "description", label: "备注/描述", minWidth: 120, showOverflowTooltip: true, headerAlign: "center", visible: false },
       { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
       { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {
@@ -604,6 +612,7 @@ const detailFormData = ref<ProduceWorderTable>({});
 
 const detailItems: import("@/components/display/fa-descriptions/index.vue").DescriptionsItem[] = [
   { label: "单号", prop: "no" },
+  { label: "所属项目", prop: "project_name" },
   { label: "所属部件", prop: "component_name" },
   { label: "工艺", prop: "craft_name" },
   { label: "工时", prop: "man_hour" },

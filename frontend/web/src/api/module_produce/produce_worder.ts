@@ -106,6 +106,8 @@ export interface ProduceWorderPageQuery extends PageQuery, UserByQueryParams {
 /** 列表展示项 */
 export interface ProduceWorderTable extends BaseType {
   no?: string;
+  project_id?: number;
+  project_name?: string;
   component_id?: number;
   component_name?: string;
   craft_id?: number;

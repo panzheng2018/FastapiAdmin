@@ -37,11 +37,14 @@ class ProduceWorderService:
             item.real_user_name = obj.real_user.name or obj.real_user.username
         if getattr(obj, "component", None):
             item.component_name = obj.component.name
+            if getattr(obj.component, "project", None):
+                item.project_name = obj.component.project.name
+                item.project_id = obj.component.project.id
         return item
 
     async def detail(self, id: int) -> ProduceWorderOutSchema:
         obj = await ProduceWorderCRUD(self.auth, self.db).get(
-            id=id, preload=["craft", "plan_user", "real_user", "component"]
+            id=id, preload=["craft", "plan_user", "real_user", "component", "component.project"]
         )
         if not obj:
             raise CustomException(msg="该数据不存在")
@@ -56,7 +59,7 @@ class ProduceWorderService:
         obj_list = await ProduceWorderCRUD(self.auth, self.db).get_list(
             search=search_to_dict(search),
             order_by=order_by,
-            preload=["craft", "plan_user", "real_user", "component"],
+            preload=["craft", "plan_user", "real_user", "component", "component.project"],
         )
         result = []
         for obj in obj_list:
@@ -77,7 +80,7 @@ class ProduceWorderService:
             limit=page_size,
             order_by=order_by or [{"id": "asc"}],
             search=search_to_dict(search, {}),
-            preload=["craft", "plan_user", "real_user", "component"],
+            preload=["craft", "plan_user", "real_user", "component", "component.project"],
         )
         items: list[ProduceWorderOutSchema] = []
         for obj in page_result.items:

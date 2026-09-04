@@ -49,6 +49,8 @@ class ProduceWorderOutSchema(ProduceWorderCreateSchema, BaseSchema, UserBySchema
     craft_name: str | None = Field(default=None, description="工艺名称")
     plan_user_name: str | None = Field(default=None, description="执行用户名称")
     real_user_name: str | None = Field(default=None, description="实际用户名称")
+    project_id: int | None = Field(default=None, description="所属项目ID")
+    project_name: str | None = Field(default=None, description="所属项目名称")
     component_name: str | None = Field(default=None, description="部件名称")
 
 

@@ -372,7 +372,7 @@ const {
           );
         },
       },
-      { prop: "description", label: "备注/描述", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "description", label: "备注/描述", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
       { prop: "created_time", label: "创建时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
       { prop: "updated_time", label: "更新时间", width: 168, sortable: true, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {
