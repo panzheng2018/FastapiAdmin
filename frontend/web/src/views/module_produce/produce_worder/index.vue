@@ -212,7 +212,7 @@
             </ElSelect>
           </template>
 
-          <!-- 4. 工艺：下拉菜单 -->
+          <!-- 4. 工艺：下拉菜单（仅显示没有父工艺id的根工艺） -->
           <template #craft_id>
             <ElSelect
               v-model="formData.craft_id"
@@ -223,7 +223,7 @@
               class="w-full custom-input-container"
             >
               <ElOption
-                v-for="item in craftList"
+                v-for="item in rootCraftList"
                 :key="item.id"
                 :label="item.name"
                 :value="item.id!"
@@ -647,6 +647,11 @@ const totalComponentPages = computed(() => Math.ceil(componentTotal.value / comp
 
 const craftList = ref<ProduceCraftTable[]>([]);
 const craftLoading = ref(false);
+const rootCraftList = computed(() => {
+  return craftList.value.filter(
+    (item) => !item.parent_id || (dialogVisible.type === "update" && item.id === formData.value.craft_id)
+  );
+});
 
 const userList = ref<UserInfo[]>([]);
 const userLoading = ref(false);
