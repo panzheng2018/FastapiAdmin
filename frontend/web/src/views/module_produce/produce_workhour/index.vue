@@ -522,7 +522,7 @@ const {
       {
         prop: "operation",
         label: "操作",
-        width: 140,
+        width: 135,
         fixed: "right",
         align: "center",
         headerAlign: "center",

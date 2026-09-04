@@ -338,6 +338,82 @@ const STATUS_OPTIONS = [
   { label: "已暂停", value: "6" },
 ] as const;
 
+/** 格式化日期时间为两行（第1行日期，第2行时间，日期中的-与时间中的:严格垂直对齐） */
+function formatDateTimeTwoLines(val?: string | null) {
+  if (!val) return "—";
+  const str = String(val).trim();
+  const parts = str.includes(" ")
+    ? str.split(" ")
+    : str.includes("T")
+    ? str.split("T")
+    : [str];
+  const dateStr = parts[0] || "";
+  const timeStr = parts.slice(1).join(" ");
+
+  if (!timeStr) {
+    return h("span", { style: { fontSize: "13px", color: "var(--el-text-color-primary, #303133)" } }, dateStr);
+  }
+
+  const dateMatch = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  const timeMatch = timeStr.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+
+  if (!dateMatch || !timeMatch) {
+    return h(
+      "div",
+      {
+        class: "inline-flex flex-col items-end justify-center leading-none select-none text-right",
+        style: { lineHeight: "1.15", fontSize: "13px" },
+      },
+      [
+        h("span", { style: { color: "var(--el-text-color-primary, #303133)", whiteSpace: "nowrap" } }, dateStr),
+        h("span", { style: { color: "var(--el-text-color-regular, #606266)", marginTop: "2px", whiteSpace: "nowrap" } }, timeStr),
+      ]
+    );
+  }
+
+  const [, y, m, d] = dateMatch;
+  const [, hh, mm, ss] = timeMatch;
+
+  const sepStyle = {
+    justifySelf: "center",
+    textAlign: "center" as const,
+    width: "8px",
+    color: "var(--el-text-color-secondary, #909399)",
+  };
+
+  return h(
+    "div",
+    {
+      class: "inline-grid select-none",
+      style: {
+        gridTemplateColumns: "auto 8px auto 8px auto",
+        rowGap: "2px",
+        lineHeight: "1.15",
+        fontSize: "13px",
+        fontVariantNumeric: "tabular-nums",
+        fontFeatureSettings: '"tnum"',
+        fontFamily:
+          '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+      },
+    },
+    [
+      // 第 1 行：日期 (YYYY - MM - DD)
+      h("span", { style: { justifySelf: "end", color: "var(--el-text-color-primary, #303133)" } }, y),
+      h("span", { style: sepStyle }, "-"),
+      h("span", { style: { justifySelf: "center", color: "var(--el-text-color-primary, #303133)" } }, m),
+      h("span", { style: sepStyle }, "-"),
+      h("span", { style: { justifySelf: "center", color: "var(--el-text-color-primary, #303133)" } }, d),
+
+      // 第 2 行：时间 (  HH : mm : ss)
+      h("span", { style: { justifySelf: "end", color: "var(--el-text-color-regular, #606266)" } }, hh),
+      h("span", { style: sepStyle }, ":"),
+      h("span", { style: { justifySelf: "center", color: "var(--el-text-color-regular, #606266)" } }, mm),
+      h("span", { style: sepStyle }, ss ? ":" : ""),
+      h("span", { style: { justifySelf: "center", color: "var(--el-text-color-regular, #606266)" } }, ss || ""),
+    ]
+  );
+}
+
 const createInitialFormData = (): ProduceWorderForm => ({
   no: undefined,
   project_id: undefined,
@@ -527,8 +603,23 @@ const {
       },
       { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
-      { prop: "plan_end_time", label: "完工时间", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "real_end_time", label: "实际时间", minWidth: 140, showOverflowTooltip: true, headerAlign: "center", visible: false },
+      {
+        prop: "plan_end_time",
+        label: "完工时间",
+        minWidth: 70,
+        align: "center",
+        headerAlign: "center",
+        formatter: (row: ProduceWorderTable) => formatDateTimeTwoLines(row.plan_end_time),
+      },
+      {
+        prop: "real_end_time",
+        label: "实际时间",
+        minWidth: 70,
+        align: "center",
+        headerAlign: "center",
+        visible: false,
+        formatter: (row: ProduceWorderTable) => formatDateTimeTwoLines(row.real_end_time),
+      },
       {
         prop: "plan_user_id",
         label: "执行用户",
@@ -543,7 +634,7 @@ const {
       {
         prop: "real_user_id",
         label: "实际用户",
-        minWidth: 100,
+        minWidth: 60,
         showOverflowTooltip: true,
         headerAlign: "center",
         visible: false,
@@ -590,7 +681,7 @@ const {
       {
         prop: "operation",
         label: "操作",
-        width: 140,
+        width: 135,
         fixed: "right",
         align: "center",
         headerAlign: "center",
