@@ -318,9 +318,20 @@ defineOptions({
 
 
 // 常量定义
+const STATUS_CONFIG: Record<string, { type: "info" | "primary" | "success" | "danger" | "warning"; text: string }> = {
+  "0": { type: "info", text: "待生产" },
+  "1": { type: "primary", text: "生产中" },
+  "2": { type: "success", text: "已完成" },
+  "3": { type: "danger", text: "已取消" },
+  "4": { type: "warning", text: "已暂停" },
+};
+
 const STATUS_OPTIONS = [
-  { label: "启用", value: 0 },
-  { label: "停用", value: 1 },
+  { label: "待生产", value: "0" },
+  { label: "生产中", value: "1" },
+  { label: "已完成", value: "2" },
+  { label: "已取消", value: "3" },
+  { label: "已暂停", value: "4" },
 ] as const;
 
 const createInitialFormData = (): ProduceWorderForm => ({
@@ -540,15 +551,16 @@ const {
       {
         prop: "status",
         label: "状态",
-        width: 70,
+        width: 85,
         align: "center",
         headerAlign: "center",
         formatter: (row: ProduceWorderTable) => {
-          const isEnabled = String(row.status) === "0";
+          const statusStr = String(row.status ?? "");
+          const config = STATUS_CONFIG[statusStr];
           return h(
             ElTag,
-            { type: isEnabled ? "success" : "danger" },
-            () => (isEnabled ? "启用" : "禁用")
+            { type: config?.type ?? "info" },
+            () => config?.text ?? (statusStr || "—")
           );
         },
       },

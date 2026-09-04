@@ -145,8 +145,9 @@ class ProduceWorderService:
         }
 
         data = obj_list.copy()
+        status_map = {"0": "待生产", "1": "生产中", "2": "已完成", "3": "已取消", "4": "已暂停"}
         for item in data:
-            item["status"] = "启用" if item.get("status") == 0 else "停用"
+            item["status"] = status_map.get(str(item.get("status")), str(item.get("status") or ""))
             creator_info = item.get("created_id")
             if isinstance(creator_info, dict):
                 item["created_id"] = creator_info.get("name", "未知")
@@ -185,8 +186,12 @@ class ProduceWorderService:
 
             # 将中文字段名映射为英文字段
             mapped_rows = []
+            status_reverse = {"待生产": "0", "生产中": "1", "已完成": "2", "已取消": "3", "已暂停": "4"}
             for row in rows:
-                mapped_rows.append({en: row.get(ch) for ch, en in header_dict.items()})
+                item = {en: row.get(ch) for ch, en in header_dict.items()}
+                if "status" in item and item["status"] is not None:
+                    item["status"] = status_reverse.get(str(item["status"]).strip(), str(item["status"]).strip())
+                mapped_rows.append(item)
 
             required_fields = [
                 "no",
