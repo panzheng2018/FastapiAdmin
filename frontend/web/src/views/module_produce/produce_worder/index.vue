@@ -606,7 +606,7 @@ const {
       {
         prop: "plan_end_time",
         label: "完工时间",
-        minWidth: 70,
+        minWidth: 100,
         align: "center",
         headerAlign: "center",
         formatter: (row: ProduceWorderTable) => formatDateTimeTwoLines(row.plan_end_time),
@@ -614,10 +614,9 @@ const {
       {
         prop: "real_end_time",
         label: "实际时间",
-        minWidth: 70,
+        minWidth: 100,
         align: "center",
         headerAlign: "center",
-        visible: false,
         formatter: (row: ProduceWorderTable) => formatDateTimeTwoLines(row.real_end_time),
       },
       {
