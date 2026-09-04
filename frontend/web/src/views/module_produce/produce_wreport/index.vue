@@ -1124,6 +1124,7 @@ function buildRowActions(row: ProduceWreportTable): TableOperationAction[] {
 function formatOperationCell(row: ProduceWreportTable) {
   return renderTableOperationCell(buildRowActions(row), {
     wrapperClass: "inline-flex flex-wrap items-center justify-center gap-1.5 action-btn-group",
+    tooltipPlacement: "left-start",
   });
 }
 

@@ -1082,6 +1082,7 @@ function buildRowActions(row: ProduceWorderTable): TableOperationAction[] {
 function formatOperationCell(row: ProduceWorderTable) {
   return renderTableOperationCell(buildRowActions(row), {
     wrapperClass: "inline-flex flex-wrap items-center justify-center gap-1.5 action-btn-group",
+    tooltipPlacement: "left-start",
   });
 }
 

@@ -483,6 +483,19 @@ export interface TableOperationAction {
   disabled?: boolean;
   iconColor?: string;
   color?: string;
+  tooltipPlacement?:
+    | "top"
+    | "top-start"
+    | "top-end"
+    | "bottom"
+    | "bottom-start"
+    | "bottom-end"
+    | "left"
+    | "left-start"
+    | "left-end"
+    | "right"
+    | "right-start"
+    | "right-end";
   run: () => void;
 }
 
@@ -490,6 +503,19 @@ export interface RenderTableOperationCellOptions {
   maxInline?: number;
   wrapperClass?: string;
   emptyText?: string;
+  tooltipPlacement?:
+    | "top"
+    | "top-start"
+    | "top-end"
+    | "bottom"
+    | "bottom-start"
+    | "bottom-end"
+    | "left"
+    | "left-start"
+    | "left-end"
+    | "right"
+    | "right-start"
+    | "right-end";
 }
 
 const ART_TYPE_DEFAULT_ICONS: Record<TableOperationAction["artType"], string> = {
@@ -542,22 +568,28 @@ export function renderTableOperationCell(
   const overflow = permittedActions.slice(maxInline);
 
   const inlineNodes = inline.map((a) =>
-    h(ElTooltip, { content: a.label, placement: "top" }, () =>
-      h(
-        "span",
-        {
-          class: a.disabled ? "inline-flex opacity-40 pointer-events-none" : "inline-flex",
-          onClick: (e: MouseEvent) => e.stopPropagation(),
-        },
-        [
-          h(FaButtonTable, {
-            type: a.artType,
-            icon: iconForOperation(a),
-            iconColor: iconColorForOperation(a),
-            onClick: a.run,
-          }),
-        ]
-      )
+    h(
+      ElTooltip,
+      {
+        content: a.label,
+        placement: a.tooltipPlacement ?? options?.tooltipPlacement ?? "top",
+      },
+      () =>
+        h(
+          "span",
+          {
+            class: a.disabled ? "inline-flex opacity-40 pointer-events-none" : "inline-flex",
+            onClick: (e: MouseEvent) => e.stopPropagation(),
+          },
+          [
+            h(FaButtonTable, {
+              type: a.artType,
+              icon: iconForOperation(a),
+              iconColor: iconColorForOperation(a),
+              onClick: a.run,
+            }),
+          ]
+        )
     )
   );
 
