@@ -100,9 +100,17 @@
                 v-model="formData.no"
                 placeholder="请输入单号"
                 clearable
+                :disabled="dialogVisible.type === 'update'"
                 class="flex-1"
               />
-              <ElButton type="primary" plain @click="handleGenerateNo">生成</ElButton>
+              <ElButton
+                type="primary"
+                plain
+                :disabled="dialogVisible.type === 'update'"
+                @click="handleGenerateNo"
+              >
+                生成
+              </ElButton>
             </div>
           </template>
 
@@ -114,6 +122,7 @@
               filterable
               clearable
               :loading="projectLoading"
+              :disabled="dialogVisible.type === 'update'"
               class="w-full custom-input-container"
               @change="handleProjectChange"
               @visible-change="handleProjectDropdownVisible"
@@ -168,7 +177,7 @@
               clearable
               :loading="componentLoading"
               class="w-full custom-input-container"
-              :disabled="!formData.project_id"
+              :disabled="dialogVisible.type === 'update' || !formData.project_id"
               @visible-change="handleComponentDropdownVisible"
             >
               <ElOption
@@ -220,6 +229,7 @@
               filterable
               clearable
               :loading="craftLoading"
+              :disabled="dialogVisible.type === 'update'"
               class="w-full custom-input-container craft-select-center"
             >
               <ElOption
@@ -770,13 +780,33 @@ const rules = reactive({
   description: [{ required: false, message: "请填写备注/描述", trigger: "blur" }],
 });
 
-const dialogFormItems: FormItem[] = [
+const dialogFormItems = computed<FormItem[]>(() => [
   { key: "no", label: "单　　号", type: "input" },
   { key: "project_id", label: "所属项目", type: "select" },
   { key: "component_id", label: "所属部件", type: "select" },
-  { key: "plan_count", label: "数　　量", type: "number", props: { placeholder: "请输入数量", class: "w-full", style: { width: "100%" } } },
+  {
+    key: "plan_count",
+    label: "数　　量",
+    type: "number",
+    props: {
+      placeholder: "请输入数量",
+      class: "w-full",
+      style: { width: "100%" },
+      disabled: dialogVisible.type === "update",
+    },
+  },
   { key: "craft_id", label: "工　　艺", type: "select" },
-  { key: "man_hour", label: "工　　时", type: "number", props: { placeholder: "请输入工时", class: "w-full", style: { width: "100%" }, min: 0 } },
+  {
+    key: "man_hour",
+    label: "工　　时",
+    type: "number",
+    props: {
+      placeholder: "请输入工时",
+      class: "w-full",
+      style: { width: "100%" },
+      min: 0,
+    },
+  },
   {
     key: "description",
     label: "描　　述",
@@ -787,9 +817,10 @@ const dialogFormItems: FormItem[] = [
       maxlength: 100,
       showWordLimit: true,
       placeholder: "请输入描述",
+      disabled: dialogVisible.type === "update",
     },
   },
-];
+]);
 
 const dataFormRef = ref<InstanceType<typeof FaForm> | null>(null);
 const formRenderKey = ref(0);
@@ -812,8 +843,9 @@ const crud = useCrudForm<ProduceWorkhourForm>({
     return ProduceWorkhourAPI.createProduceWorkhour(payload);
   },
   updateApi: (id: number, data: ProduceWorkhourForm) => {
-    const { project_id, ...payload } = data;
-    return ProduceWorkhourAPI.updateProduceWorkhour(id, payload);
+    return ProduceWorkhourAPI.updateProduceWorkhour(id, {
+      man_hour: data.man_hour,
+    });
   },
   titles: { create: "新增", update: "修改", detail: "详情" },
   detailFormData,

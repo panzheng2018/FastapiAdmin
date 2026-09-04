@@ -107,12 +107,29 @@ class ProduceWorkhourService:
         if not obj:
             raise CustomException(msg="更新失败，该数据不存在")
 
-        if data.no:
-            exist_obj = await ProduceWorkhourCRUD(self.auth, self.db).get(no=data.no)
-            if exist_obj and exist_obj.id != id:
-                raise CustomException(msg="更新失败，单号重复")
+        # 检查数据库中当前记录的 status：若非状态 "2"（待生产），则拒绝修改任何数据并报错
+        if str(obj.status) != "2":
+            status_map = {
+                "0": "启用",
+                "1": "禁用",
+                "2": "待生产",
+                "3": "生产中",
+                "4": "已完成",
+                "5": "已取消",
+                "6": "已暂停",
+            }
+            current_status_name = status_map.get(str(obj.status), str(obj.status))
+            raise CustomException(msg=f"更新失败：当前工单不是待生产状态")
 
-        obj = await ProduceWorkhourCRUD(self.auth, self.db).update(id=id, data=data)
+        if data.man_hour is None:
+            raise CustomException(msg="更新失败：工时不能为空")
+
+        # 仅提取更新的 man_hour 字段，忽略其他字段；状态联动更新为 "3"（生产中）
+        update_data: dict[str, Any] = {
+            "man_hour": data.man_hour,
+            "status": "3",
+        }
+        await ProduceWorkhourCRUD(self.auth, self.db).update(id=id, data=update_data)
         return await self.detail(id)
 
     async def delete(self, ids: list[int]) -> None:
