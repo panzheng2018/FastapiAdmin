@@ -337,7 +337,7 @@ const searchForm = ref<ProduceWorkhourSearchFormParams>({
 });
 
 /** 搜索区域默认展开展示 */
-const showSearchBar = ref(true);
+const showSearchBar = ref(false);
 
 const searchBarRef = ref<{ validate: () => Promise<boolean> } | null>(null);
 const searchBarRules: Record<string, unknown> = {};
@@ -427,6 +427,7 @@ const {
     apiParams: {
       page_no: 1,
       page_size: 10,
+      order_by: JSON.stringify([{ id: "desc" }]),
     },
     columnsFactory: (): ColumnOption<ProduceWorkhourTable>[] => [
       { type: "globalIndex", width: 56, label: "序号", align: "center", headerAlign: "center", visible: false },
@@ -853,6 +854,7 @@ const { importVisible, exportVisible, openImport, openExport } = useImportExport
 const handleSearch = async (params: ProduceWorkhourSearchFormParams) => {
   await searchBarRef.value?.validate();
   replaceSearchParams({
+    order_by: JSON.stringify([{ id: "desc" }]),
     no: params.no,
     component_id: params.component_id,
     craft_id: params.craft_id,

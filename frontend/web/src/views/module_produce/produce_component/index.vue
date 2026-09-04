@@ -249,8 +249,8 @@ const searchForm = ref<ProduceComponentSearchFormParams>({
   updated_time: [],
 });
 
-/** 搜索区域默认展开展示 */
-const showSearchBar = ref(true);
+/** 搜索区域默认展开展示（默认隐藏） */
+const showSearchBar = ref(false);
 
 const searchBarRef = ref<{ validate: () => Promise<boolean> } | null>(null);
 const searchBarRules: Record<string, unknown> = {};
@@ -341,6 +341,7 @@ const {
     apiParams: {
       page_no: 1,
       page_size: 10,
+      order_by: JSON.stringify([{ id: "desc" }]),
     },
     columnsFactory: (): ColumnOption<ProduceComponentTable>[] => [
       { type: "globalIndex", width: 56, label: "序号", align: "center", headerAlign: "center" },
@@ -578,6 +579,7 @@ const { importVisible, exportVisible, openImport, openExport } = useImportExport
 const handleSearch = async (params: ProduceComponentSearchFormParams) => {
   await searchBarRef.value?.validate();
   replaceSearchParams({
+    order_by: JSON.stringify([{ id: "desc" }]),
     project_id: params.project_id,
     project_name: params.project_name,
     name: params.name,
