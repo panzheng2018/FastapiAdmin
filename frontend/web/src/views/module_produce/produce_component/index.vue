@@ -356,8 +356,8 @@ const {
       },
       { prop: "name", label: "部件名称", minWidth: 120, showOverflowTooltip: true, headerAlign: "center" },
       { prop: "code", label: "部件编码", minWidth: 70, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "count", label: "数量", minWidth: 50, showOverflowTooltip: true, headerAlign: "center" },
-      { prop: "tmass", label: "总重", minWidth: 70, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "count", label: "数量", minWidth: 50, showOverflowTooltip: true, align: "center" },
+      { prop: "tmass", label: "总重", minWidth: 70, showOverflowTooltip: true, align: "right" },
       {
         prop: "status",
         label: "状态",

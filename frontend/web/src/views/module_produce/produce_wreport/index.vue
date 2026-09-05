@@ -1280,7 +1280,9 @@ const deleteRow = async (row: ProduceWreportTable) => {
 
   try {
     await confirmDelete(
-      `确定删除工单【${orderNo}】（项目：${projectName}，部件：${componentName}）吗？此操作不可恢复！`
+      `确定删除工单【${orderNo}】并无法恢复！
+      项目：${projectName}
+      部件：${componentName}`
     );
     await ProduceWreportAPI.deleteProduceWreport([row[PK] as number]);
     faTableRef.value?.elTableRef?.clearSelection();

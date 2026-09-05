@@ -63,20 +63,20 @@
               <FaSvgIcon icon="ri:user-3-line" class="mr-2 text-base" />
               <span class="text-sm">{{ $t("topBar.user.userCenter") }}</span>
             </li>
-            <li
+            <!-- <li
               class="flex items-center p-2 mb-3 select-none rounded-md cursor-pointer last:mb-0 hover:bg-(--el-color-primary)/10"
               @click="toGithub()"
             >
               <FaSvgIcon icon="ri:github-line" class="mr-2 text-base" />
               <span class="text-sm">{{ $t("topBar.user.github") }}</span>
-            </li>
-            <li
+            </li> -->
+            <!-- <li
               class="flex items-center p-2 mb-3 select-none rounded-md cursor-pointer last:mb-0 hover:bg-(--el-color-primary)/10"
               @click="toGitee"
             >
               <FaSvgIcon icon="ri:git-branch-line" class="mr-2 text-base" />
               <span class="text-sm">{{ $t("topBar.user.gitee") }}</span>
-            </li>
+            </li> -->
             <li
               class="flex items-center p-2 mb-3 select-none rounded-md cursor-pointer last:mb-0 hover:bg-(--el-color-primary)/10"
               @click="lockScreen()"
