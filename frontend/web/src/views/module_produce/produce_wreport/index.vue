@@ -581,7 +581,7 @@ const {
     columnsFactory: (): ColumnOption<ProduceWreportTable>[] => [
       { type: "globalIndex", label: "序号", width: 50, fixed: "left", align: "center", headerAlign: "center", visible: false },
       { type: "selection", width: 45, fixed: "left", align: "center", headerAlign: "center" },
-      { prop: "no", label: "单号", minWidth: 120, fixed: "left", showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "no", label: "单号", minWidth: 110, fixed: "left", showOverflowTooltip: true, headerAlign: "center" },
       {
         prop: "project_name",
         label: "所属项目",
