@@ -615,7 +615,7 @@ const {
           );
         },
       },
-      { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, headerAlign: "center" },
+      { prop: "man_hour", label: "工时", minWidth: 80, showOverflowTooltip: true, align: "right" },
       { prop: "real_count", label: "实际数量", minWidth: 80, showOverflowTooltip: true, headerAlign: "center", visible: false },
       {
         prop: "plan_end_time",
