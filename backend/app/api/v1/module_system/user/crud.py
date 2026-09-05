@@ -67,7 +67,3 @@ class UserCRUD(CRUDBase[UserModel, UserCreateSchema, UserUpdateSchema]):
         - UserModel: 更新后的用户信息
         """
         return await self.update(id=id, data=UserUpdateSchema(password=password_hash))
-
-    async def forget_password(self, id: int, password_hash: str) -> UserModel:
-        """重置密码（与 change_password 逻辑相同）"""
-        return await self.change_password(id=id, password_hash=password_hash)

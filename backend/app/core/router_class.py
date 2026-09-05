@@ -18,7 +18,6 @@ _PUBLIC_WRITE_PATHS: set[str] = {
     "/auth/login",
     "/auth/token/refresh",
     "/auth/captcha/slider/complete",
-    "/auth/user/register",
 }
 
 

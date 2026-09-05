@@ -45,22 +45,6 @@ export const UserAPI = {
     });
   },
 
-  forgetPassword(body: ForgetPasswordForm) {
-    return request<ApiResponse>({
-      url: `${API_PATH}/password/forget`,
-      method: "post",
-      data: body,
-    });
-  },
-
-  register(body: RegisterForm) {
-    return request<ApiResponse>({
-      url: `${API_PATH}/register`,
-      method: "post",
-      data: body,
-    });
-  },
-
   listUser(query: UserPageQuery) {
     return request<ApiResponse<PageResult<UserInfo>>>({
       url: `${API_PATH}/list`,
@@ -138,19 +122,6 @@ export const UserAPI = {
 };
 
 export default UserAPI;
-
-export interface ForgetPasswordForm {
-  username: string;
-  new_password: string;
-  confirmPassword: string;
-}
-
-export interface RegisterForm {
-  username: string;
-  password: string;
-  confirmPassword: string;
-  name?: string;
-}
 
 export interface UserPageQuery extends PageQuery, UserByQueryParams {
   username?: string;

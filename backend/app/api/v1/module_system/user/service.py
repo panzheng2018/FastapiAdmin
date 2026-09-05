@@ -22,10 +22,8 @@ from .schema import (
     ResetPasswordSchema,
     UserChangePasswordSchema,
     UserCreateSchema,
-    UserForgetPasswordSchema,
     UserOutSchema,
     UserQueryParam,
-    UserRegisterSchema,
     UserUpdateSchema,
 )
 
@@ -269,38 +267,6 @@ class UserService:
         new_password_hash = PwdUtil.hash_password(password=data.password)
         await UserCRUD(self.auth, self.db).change_password(id=data.id, password_hash=new_password_hash)
         return await self.detail(id=data.id)
-
-    async def forget_password(self, data: UserForgetPasswordSchema) -> UserOutSchema:
-        user = await UserCRUD(self.auth, self.db).get_or_404(username=data.username)
-        if user.status == 1:
-            raise CustomException(msg="用户已停用")
-        if user.is_superuser:
-            raise CustomException(msg="超级管理员密码不能重置")
-
-        new_password_hash = PwdUtil.hash_password(password=data.new_password)
-        await UserCRUD(self.auth, self.db).change_password(id=user.id, password_hash=new_password_hash)
-        return await self.detail(id=user.id)
-
-    async def register(self, data: UserRegisterSchema) -> UserOutSchema:
-        """用户注册"""
-        exists_user = await UserCRUD(self.auth, self.db).get(username=data.username)
-        if exists_user:
-            raise CustomException(msg="已存在相同用户名称的账号")
-
-        create_data = UserCreateSchema(
-            username=data.username,
-            password=PwdUtil.hash_password(password=data.password),
-            name=data.name or data.username,
-            status=0,
-        )
-        create_data_dict = create_data.model_dump(exclude_none=True, exclude={"role_ids", "position_ids"})
-        new_user = await UserCRUD(self.auth, self.db).create(data=create_data_dict)
-        if not new_user:
-            raise CustomException(msg="注册失败")
-        # 注册时 auth 无用户，created_id/updated_id 未设置，补充为自身ID
-        await UserCRUD(self.auth, self.db).set([new_user.id], created_id=new_user.id, updated_id=new_user.id)
-        logger.info(f"新用户注册成功: {data.username}")
-        return await self.detail(id=new_user.id)
 
     async def batch_import(self, file: UploadFile, update_support: bool = False) -> str:
         header_dict = {

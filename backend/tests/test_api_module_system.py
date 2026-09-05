@@ -111,14 +111,6 @@ class TestUser:
             json={"old_password": "old", "new_password": "new123"},
         )
 
-    def test_user_password_forget(self, test_client: TestClient) -> None:
-        assert_route(
-            test_client,
-            "POST",
-            "/system/user/password/forget",
-            json={"username": "admin", "new_password": "newpass123"},
-        )
-
     def test_user_password_reset(self, test_client: TestClient, auth_headers: dict) -> None:
         assert_route(
             test_client,
@@ -126,14 +118,6 @@ class TestUser:
             "/system/user/password/reset/1",
             auth=auth_headers,
             json={"password": "newpass123"},
-        )
-
-    def test_user_register(self, test_client: TestClient) -> None:
-        assert_route(
-            test_client,
-            "POST",
-            "/system/user/register",
-            json={"username": "new_user", "password": "pass123", "name": "新用户"},
         )
 
     def test_user_status_batch(self, test_client: TestClient, auth_headers: dict) -> None:
