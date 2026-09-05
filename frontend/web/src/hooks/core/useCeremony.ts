@@ -120,18 +120,18 @@ export function useCeremony() {
 
   /** 无其它节日命中时的周末顶栏（仅文案，与常驻同为 skipFireworks） */
   const buildWeekendPrompt = (dateStr: string): FestivalConfig => {
-    const w = new Date(dateStr).getDay();
-    const isSat = w === 6;
-    return {
-      name: isSat ? "周六愉快" : "周日愉快",
-      date: dateStr,
-      image: "",
-      scrollText: isSat
-        ? "🌤️ 周末到啦，适当放松，记得分支与构建状态也要照顾好～"
-        : "🌅 周日休整好，新一周迭代加油。",
-      skipFireworks: true,
-      count: 3,
-    };
+  //   const w = new Date(dateStr).getDay();
+  //   const isSat = w === 6;
+  //   return {
+  //     name: isSat ? "周六愉快" : "周日愉快",
+  //     date: dateStr,
+  //     image: "",
+  //     scrollText: isSat
+  //       ? "🌤️ 周末到啦，适当放松，记得分支与构建状态也要照顾好～"
+  //       : "🌅 周日休整好，新一周迭代加油。",
+  //     skipFireworks: true,
+  //     count: 3,
+  //   };
   };
 
   const pickFestivalWinner = (candidates: TaggedFestival[]): TaggedFestival | undefined => {
