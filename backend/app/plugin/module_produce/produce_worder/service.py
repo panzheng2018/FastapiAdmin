@@ -28,6 +28,60 @@ class ProduceWorderService:
         self.auth = auth
         self.db = db
 
+    async def _is_manager_or_admin(self) -> bool:
+        """判断当前登录用户是否具备全局工单查看权限（超管/管理员/生产经理）"""
+        user = self.auth.user
+        if getattr(user, "is_superuser", False):
+            return True
+
+        from app.api.v1.module_system.role.model import RoleModel
+        from app.api.v1.module_system.user.model import UserRolesModel
+        from sqlalchemy import select
+
+        stmt = (
+            select(RoleModel.name, RoleModel.code)
+            .join(UserRolesModel, UserRolesModel.role_id == RoleModel.id)
+            .where(UserRolesModel.user_id == user.id)
+        )
+        result = await self.db.execute(stmt)
+        roles = result.all()
+
+        target_names = ["超级管理员", "管理员", "生产经理"]
+        target_codes = ["SUPER_ADMIN", "ADMIN", "PRODUCTION_MANAGER"]
+        for r_name, r_code in roles:
+            if r_name and any(t in r_name for t in target_names):
+                return True
+            if r_code and any(c == r_code.upper() for c in target_codes):
+                return True
+        return False
+
+    async def get_dashboard_stats(self) -> dict[str, Any]:
+        """获取工单仪表盘统计数据"""
+        is_manager = await self._is_manager_or_admin()
+        user_id = self.auth.user.id
+
+        from sqlalchemy import func, select
+        from .model import ProduceWorderModel
+
+        # 待生产: "2", 生产中: "3", 已完成: "4"
+        stmt = (
+            select(ProduceWorderModel.status, func.count(ProduceWorderModel.id))
+            .where(ProduceWorderModel.status.in_(["2", "3", "4"]))
+        )
+        if not is_manager:
+            stmt = stmt.where(ProduceWorderModel.plan_user_id == user_id)
+
+        stmt = stmt.group_by(ProduceWorderModel.status)
+        rows = (await self.db.execute(stmt)).all()
+        status_map = {str(status): count for status, count in rows}
+
+        return {
+            "is_manager": is_manager,
+            "pending_count": status_map.get("2", 0),
+            "producing_count": status_map.get("3", 0),
+            "completed_count": status_map.get("4", 0),
+        }
+
     @staticmethod
     def _populate_names(item: ProduceWorderOutSchema, obj: Any) -> ProduceWorderOutSchema:
         if getattr(obj, "craft", None):

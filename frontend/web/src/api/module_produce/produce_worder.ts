@@ -5,6 +5,13 @@ import { request } from "@utils";
 const API_PATH = "/produce/produce_worder";
 
 const ProduceWorderAPI = {
+  getDashboardStats() {
+    return request<ApiResponse<ProduceWorderDashboardStats>>({
+      url: `${API_PATH}/dashboard_stats`,
+      method: "get",
+    });
+  },
+
   getProduceWorderList(query: ProduceWorderPageQuery) {
     return request<ApiResponse<PageResult<ProduceWorderTable>>>({
       url: `${API_PATH}/list`,
@@ -141,3 +148,12 @@ export interface ProduceWorderForm extends BaseFormType {
   status?: string;
   description?: string;
 }
+
+/** 仪表盘统计响应数据 */
+export interface ProduceWorderDashboardStats {
+  is_manager: boolean;
+  pending_count: number;
+  producing_count: number;
+  completed_count: number;
+}
+

@@ -1,6 +1,6 @@
 <!-- 数据列表卡片 -->
 <template>
-  <div class="fa-card p-5 h-110 overflow-hidden">
+  <div class="fa-card p-5 h-65 overflow-hidden">
     <div class="pb-3.5">
       <p class="text-lg font-medium">{{ title }}</p>
       <p class="text-sm text-g-600">{{ subtitle }}</p>
@@ -21,9 +21,6 @@
         <div class="ml-3 text-xs text-g-500">{{ item.time }}</div>
       </div>
     </ElScrollbar>
-    <ElButton class="mt-6.25 w-full text-center" v-if="showMoreButton" v-ripple @click="handleMore">
-      查看更多
-    </ElButton>
   </div>
 </template>
 

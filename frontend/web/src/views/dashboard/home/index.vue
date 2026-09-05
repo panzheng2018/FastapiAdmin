@@ -12,79 +12,11 @@
                 <ElCol :xs="24" :sm="24" :md="24">
                   <CardList />
                 </ElCol>
-              </ElRow>
-              <ElRow :gutter="20">
-                <ElCol :xs="24" :sm="8" :md="8" class="mb-5">
-                  <FaStatsCard
-                    :icon="'ri:money-cny-box-line'"
-                    :iconStyle="'bg-theme'"
-                    :boxStyle="'bg-theme/10!'"
-                    :title="'总收入'"
-                    :description="'月收入超过¥350,000+'"
-                    :count="35000"
-                    :textColor="'var(--theme-color)'"
-                    :decimals="0"
-                    :showArrow="false"
-                    separator=","
-                    customIconStyle="'text-theme! text-3xl!''"
-                  />
-                </ElCol>
-                <ElCol :xs="24" :sm="8" :md="8" class="mb-5">
-                  <FaProgressCard
-                    :percentage="65"
-                    :title="'任务进度'"
-                    :color="'var(--theme-color)'"
-                  />
-                </ElCol>
-                <ElCol :xs="24" :sm="8" :md="8" class="mb-5">
-                  <FaProgressCard
-                    :percentage="80"
-                    :title="'任务进度'"
-                    :color="'var(--theme-color)'"
-                    :icon="'ri:twitch-line'"
-                    :iconStyle="'bg-theme/12 text-theme'"
-                  />
+                <ElCol :xs="24" :sm="24" :md="24">
+                  <WorderCardList />
                 </ElCol>
               </ElRow>
-              <ElRow :gutter="20">
-                <ElCol :xs="24" :sm="8" :md="8" class="mb-5">
-                  <FaBarChartCard
-                    :isMiniChart="true"
-                    :value="15480"
-                    label="浏览量"
-                    date="过去14天"
-                    :percentage="-4.15"
-                    :height="9.5"
-                    barWidth="45%"
-                    :chartData="[120, 100, 150, 140, 90, 120, 130]"
-                  />
-                </ElCol>
-                <ElCol :xs="24" :sm="8" :md="8" class="mb-5">
-                  <FaLineChartCard
-                    :isMiniChart="true"
-                    :value="2545"
-                    label="粉丝数"
-                    date="过去30天"
-                    :percentage="1.2"
-                    :height="9.5"
-                    :showAreaColor="true"
-                    :chartData="[150, 180, 160, 200, 180, 220, 240]"
-                  />
-                </ElCol>
-                <ElCol :xs="24" :sm="8" :md="8" class="mb-5">
-                  <FaDonutChartCard
-                    :value="36358"
-                    title="粉丝量"
-                    :percentage="18"
-                    percentageLabel="较去年"
-                    :data="[50, 40]"
-                    :height="9.5"
-                    currentValue="2022"
-                    previousValue="2021"
-                    :radius="['50%', '70%']"
-                  />
-                </ElCol>
-              </ElRow>
+
             </ElCol>
 
           </ElRow>
@@ -114,6 +46,7 @@ import { ref, onMounted, defineAsyncComponent } from "vue";
 import { ElMessage } from "element-plus";
 import { getDashboardMock } from "@/mock/dashboard";
 import CardList from "./modules/card-list.vue";
+import WorderCardList from "./modules/worder-card-list.vue";
 const mock = getDashboardMock();
 const loading = ref(false);
 const healthList = ref(mock.health);

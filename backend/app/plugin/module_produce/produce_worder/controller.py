@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.common.response import ResponseSchema, StreamResponse, SuccessResponse
 from app.core.base_schema import AuthSchema, BatchSetAvailable, PageResultSchema, PaginationQueryParam
-from app.core.dependencies import AuthPermission, db_getter
+from app.core.dependencies import AuthPermission, db_getter, get_current_user
 from app.core.router_class import OperationLogRoute
 from app.utils.common_util import bytes2file_response
 
@@ -16,6 +16,16 @@ from .schema import ProduceWorderCreateSchema, ProduceWorderOutSchema, ProduceWo
 from .service import ProduceWorderService
 
 ProduceWorderRouter = APIRouter(route_class=OperationLogRoute, prefix="/produce_worder", tags=["工单管理模块"])
+
+
+@ProduceWorderRouter.get("/dashboard_stats", summary="获取工单仪表盘统计数据", response_model=ResponseSchema[dict])
+async def get_dashboard_stats_controller(
+    auth: Annotated[AuthSchema, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(db_getter)],
+) -> JSONResponse:
+    service = ProduceWorderService(auth, db)
+    data = await service.get_dashboard_stats()
+    return SuccessResponse(data=data, msg="获取工单统计成功")
 
 
 @ProduceWorderRouter.get("/detail/{id}", summary="获取工单管理详情", response_model=ResponseSchema[ProduceWorderOutSchema])
