@@ -139,18 +139,54 @@ const isManagerOrAdmin = computed(() => {
   const info = userStore.info;
   if (info?.is_superuser) return true;
 
-  const targetNames = ["超级管理员", "管理员", "生产经理"];
-  const targetCodes = ["SUPER_ADMIN", "ADMIN", "PRODUCTION_MANAGER"];
+  const targetKeywords = ["管理员", "经理"];
+  const targetCodes = ["SUPER_ADMIN", "ADMIN", "MANAGER", "PRODUCTION_MANAGER"];
 
+  // 1. 检查角色
   const roles = info?.roles || [];
   const hasRole = roles.some((r) => {
-    const nameMatch = r.name && targetNames.some((t) => r.name?.includes(t));
-    const codeMatch = r.code && targetCodes.includes(r.code.toUpperCase());
+    const nameMatch = r.name && targetKeywords.some((kw) => r.name?.includes(kw));
+    const codeMatch =
+      r.code &&
+      (targetCodes.includes(r.code.toUpperCase()) ||
+        r.code.toUpperCase().includes("MANAGER") ||
+        r.code.toUpperCase().includes("ADMIN"));
     return nameMatch || codeMatch;
   });
   if (hasRole) return true;
 
-  if (info?.role_names?.some((name) => targetNames.some((t) => name.includes(t)))) {
+  if (info?.role_names?.some((name) => targetKeywords.some((kw) => name.includes(kw)))) {
+    return true;
+  }
+
+  // 2. 检查岗位（如岗位为“生产经理”）
+  const positions = (info as any)?.positions || [];
+  const hasPosition = positions.some((p: any) => {
+    const nameMatch = p.name && targetKeywords.some((kw) => p.name?.includes(kw));
+    const codeMatch =
+      p.code &&
+      (targetCodes.includes(p.code.toUpperCase()) ||
+        p.code.toUpperCase().includes("MANAGER") ||
+        p.code.toUpperCase().includes("ADMIN"));
+    return nameMatch || codeMatch;
+  });
+  if (hasPosition) return true;
+
+  // 3. 检查工时核算员（角色为“工时”且岗位为“工时核算员”，或岗位为“工时核算员”）
+  const hasHourRole =
+    roles.some(
+      (r) =>
+        (r.name && r.name.includes("工时")) ||
+        (r.code && ["MAN_HOUR", "WORK_HOUR"].includes(r.code.toUpperCase()))
+    ) || info?.role_names?.some((name) => name.includes("工时"));
+
+  const hasHourPosition = positions.some(
+    (p: any) =>
+      (p.name && (p.name.includes("工时核算员") || p.name.includes("核算员"))) ||
+      (p.code && p.code.toUpperCase().includes("HOURS_CALCULATOR"))
+  );
+
+  if ((hasHourRole && hasHourPosition) || hasHourPosition) {
     return true;
   }
 

@@ -29,30 +29,58 @@ class ProduceWorderService:
         self.db = db
 
     async def _is_manager_or_admin(self) -> bool:
-        """判断当前登录用户是否具备全局工单查看权限（超管/管理员/生产经理）"""
+        """判断当前登录用户是否具备全局工单查看权限（超管/管理员/生产经理/经理）"""
         user = self.auth.user
         if getattr(user, "is_superuser", False):
             return True
 
-        from app.api.v1.module_system.role.model import RoleModel
-        from app.api.v1.module_system.user.model import UserRolesModel
         from sqlalchemy import select
+        from app.api.v1.module_system.role.model import RoleModel
+        from app.api.v1.module_system.user.model import UserRolesModel, UserPositionsModel
+        from app.api.v1.module_system.position.model import PositionModel
 
-        stmt = (
+        target_name_keywords = ["管理员", "经理"]
+        target_codes = ["SUPER_ADMIN", "ADMIN", "MANAGER", "PRODUCTION_MANAGER"]
+
+        # 1. 检查角色（名称或编码）
+        role_stmt = (
             select(RoleModel.name, RoleModel.code)
             .join(UserRolesModel, UserRolesModel.role_id == RoleModel.id)
             .where(UserRolesModel.user_id == user.id)
         )
-        result = await self.db.execute(stmt)
-        roles = result.all()
-
-        target_names = ["超级管理员", "管理员", "生产经理"]
-        target_codes = ["SUPER_ADMIN", "ADMIN", "PRODUCTION_MANAGER"]
+        roles = (await self.db.execute(role_stmt)).all()
         for r_name, r_code in roles:
-            if r_name and any(t in r_name for t in target_names):
+            if r_name and any(kw in r_name for kw in target_name_keywords):
                 return True
-            if r_code and any(c == r_code.upper() for c in target_codes):
+            if r_code and (r_code.upper() in target_codes or "MANAGER" in r_code.upper() or "ADMIN" in r_code.upper()):
                 return True
+
+        # 2. 检查岗位（名称或编码，如岗位为“生产经理”）
+        pos_stmt = (
+            select(PositionModel.name, PositionModel.code)
+            .join(UserPositionsModel, UserPositionsModel.position_id == PositionModel.id)
+            .where(UserPositionsModel.user_id == user.id)
+        )
+        positions = (await self.db.execute(pos_stmt)).all()
+        for p_name, p_code in positions:
+            if p_name and any(kw in p_name for kw in target_name_keywords):
+                return True
+            if p_code and (p_code.upper() in target_codes or "MANAGER" in p_code.upper() or "ADMIN" in p_code.upper()):
+                return True
+
+        # 3. 检查工时核算员（角色为“工时”且岗位为“工时核算员”，或岗位为“工时核算员”）
+        has_hour_role = any(
+            (r_name and "工时" in r_name) or (r_code and r_code.upper() in ["MAN_HOUR", "WORK_HOUR"])
+            for r_name, r_code in roles
+        )
+        has_hour_pos = any(
+            (p_name and ("工时核算员" in p_name or "核算员" in p_name))
+            or (p_code and "HOURS_CALCULATOR" in p_code.upper())
+            for p_name, p_code in positions
+        )
+        if (has_hour_role and has_hour_pos) or has_hour_pos:
+            return True
+
         return False
 
     async def get_dashboard_stats(self) -> dict[str, Any]:
