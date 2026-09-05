@@ -1255,8 +1255,7 @@ const handleSubmitRow = async (row: ProduceWreportTable) => {
 
   try {
     await confirmAction(
-      `确认将以下工单提交为已完成吗？
-      单号：${orderNo}
+      `确认单号【${orderNo}】已完成吗？
       项目：${projectName}
       部件：${componentName}`,
       "提交确认"

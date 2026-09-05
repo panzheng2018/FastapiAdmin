@@ -5,20 +5,14 @@
       <!-- 左列：主内容区 | 右列：侧边栏 -->
       <ElRow :gutter="20">
         <ElCol :xs="24" :md="18">
-
           <ElRow :gutter="20">
             <ElCol :xs="24" :md="16">
               <ElRow :gutter="20">
                 <ElCol :xs="24" :sm="24" :md="24">
-                  <CardList />
-                </ElCol>
-                <ElCol :xs="24" :sm="24" :md="24">
                   <WorderCardList />
                 </ElCol>
               </ElRow>
-
             </ElCol>
-
           </ElRow>
         </ElCol>
 
